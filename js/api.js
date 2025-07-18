@@ -1,0 +1,269 @@
+/**
+ * API通信クライアント
+ */
+class ApiClient {
+    constructor() {
+        this.baseUrl = CONFIG.API_BASE_URL;
+        this.adminToken = localStorage.getItem(CONFIG.STORAGE_KEYS.ADMIN_TOKEN);
+    }
+
+    /**
+     * HTTP リクエスト送信
+     */
+    async request(endpoint, method = 'GET', data = null, useFormData = false) {
+        try {
+            const url = this.baseUrl + endpoint;
+            const options = {
+                method: method,
+                headers: {}
+            };
+
+            if (method === 'POST' && data) {
+                if (useFormData) {
+                    // GAS では FormData を直接受け取れないため、URLエンコードを使用
+                    options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                    options.body = new URLSearchParams(data).toString();
+                } else {
+                    // JSON データの場合
+                    options.headers['Content-Type'] = 'application/json';
+                    
+                    // GAS の doPost は postData.contents から JSON を取得
+                    const requestData = {
+                        action: data.action || endpoint.split('=')[1] || 'unknown',
+                        data: data,
+                        adminToken: this.adminToken
+                    };
+                    
+                    options.body = JSON.stringify(requestData);
+                }
+            }
+
+            const response = await fetch(url, options);
+            
+            // GAS Web App は常に 200 を返すため、レスポンス内容でエラーを判定
+            const responseText = await response.text();
+            
+            try {
+                const result = JSON.parse(responseText);
+                return result;
+            } catch (parseError) {
+                console.error('JSON解析エラー:', parseError);
+                console.error('レスポンス内容:', responseText);
+                throw new Error('サーバーからの応答が無効です');
+            }
+            
+        } catch (error) {
+            console.error('API通信エラー:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * GET リクエスト
+     */
+    async get(endpoint) {
+        return this.request(endpoint, 'GET');
+    }
+
+    /**
+     * POST リクエスト
+     */
+    async post(endpoint, data) {
+        return this.request(endpoint, 'POST', data);
+    }
+
+    // === 公開API ===
+
+    /**
+     * 現在アクティブなパントリー取得
+     */
+    async getCurrentActivePantry() {
+        return this.get(CONFIG.ENDPOINTS.GET_CURRENT_PANTRY);
+    }
+
+    /**
+     * 予約作成
+     */
+    async createReservation(reservationData) {
+        return this.post(CONFIG.ENDPOINTS.CREATE_RESERVATION, {
+            action: 'createReservation',
+            ...reservationData
+        });
+    }
+
+    /**
+     * 統計データ取得
+     */
+    async getStatistics(filters = {}) {
+        return this.post(CONFIG.ENDPOINTS.GET_STATISTICS, {
+            action: 'getStatistics',
+            filters: filters
+        });
+    }
+
+    // === 管理API ===
+
+    /**
+     * 管理者ログイン
+     */
+    async adminLogin(credentials) {
+        const result = await this.post(CONFIG.ENDPOINTS.ADMIN_LOGIN, {
+            action: 'adminLogin',
+            ...credentials
+        });
+        
+        if (result.success && result.token) {
+            this.adminToken = result.token;
+            localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_TOKEN, result.token);
+        }
+        
+        return result;
+    }
+
+    /**
+     * 管理者ログアウト
+     */
+    adminLogout() {
+        this.adminToken = null;
+        localStorage.removeItem(CONFIG.STORAGE_KEYS.ADMIN_TOKEN);
+    }
+
+    /**
+     * 認証チェック
+     */
+    isAuthenticated() {
+        return !!this.adminToken;
+    }
+
+    /**
+     * パントリー一覧取得
+     */
+    async adminGetPantries(filters = {}) {
+        return this.post(CONFIG.ENDPOINTS.ADMIN_GET_PANTRIES, {
+            action: 'adminGetPantries',
+            filters: filters
+        });
+    }
+
+    /**
+     * パントリー作成
+     */
+    async adminCreatePantry(pantryData) {
+        return this.post(CONFIG.ENDPOINTS.ADMIN_CREATE_PANTRY, {
+            action: 'adminCreatePantry',
+            data: pantryData
+        });
+    }
+
+    /**
+     * パントリー更新
+     */
+    async adminUpdatePantry(pantryData) {
+        return this.post(CONFIG.ENDPOINTS.ADMIN_UPDATE_PANTRY, {
+            action: 'adminUpdatePantry',
+            data: pantryData
+        });
+    }
+
+    /**
+     * パントリー削除
+     */
+    async adminDeletePantry(pantryId) {
+        return this.post(CONFIG.ENDPOINTS.ADMIN_DELETE_PANTRY, {
+            action: 'adminDeletePantry',
+            pantryId: pantryId
+        });
+    }
+
+    /**
+     * 予約一覧取得
+     */
+    async adminGetReservations(filters = {}) {
+        return this.post(CONFIG.ENDPOINTS.ADMIN_GET_RESERVATIONS, {
+            action: 'adminGetReservations',
+            filters: filters
+        });
+    }
+
+    /**
+     * 予約キャンセル
+     */
+    async adminCancelReservation(reservationId) {
+        return this.post(CONFIG.ENDPOINTS.ADMIN_CANCEL_RESERVATION, {
+            action: 'adminCancelReservation',
+            reservationId: reservationId
+        });
+    }
+
+    /**
+     * ユーザー一覧取得
+     */
+    async adminGetUsers(filters = {}) {
+        return this.post(CONFIG.ENDPOINTS.ADMIN_GET_USERS, {
+            action: 'adminGetUsers',
+            filters: filters
+        });
+    }
+
+    /**
+     * ユーザー詳細取得
+     */
+    async adminGetUserDetail(userId) {
+        return this.post(CONFIG.ENDPOINTS.ADMIN_GET_USER_DETAIL, {
+            action: 'adminGetUserDetail',
+            userId: userId
+        });
+    }
+
+    /**
+     * ログ一覧取得
+     */
+    async adminGetLogs(filters = {}) {
+        return this.post(CONFIG.ENDPOINTS.ADMIN_GET_LOGS, {
+            action: 'adminGetLogs',
+            filters: filters
+        });
+    }
+
+    /**
+     * ログエクスポート
+     */
+    async adminExportLogs(filters = {}) {
+        return this.post(CONFIG.ENDPOINTS.ADMIN_EXPORT_LOGS, {
+            action: 'adminExportLogs',
+            filters: filters
+        });
+    }
+}
+
+// グローバルインスタンス
+const apiClient = new ApiClient();
+
+// エラーハンドリング用のヘルパー関数
+function handleApiError(error, defaultMessage = 'エラーが発生しました') {
+    console.error('API エラー:', error);
+    
+    if (error.code === 'UNAUTHORIZED') {
+        // 認証エラーの場合はログイン画面にリダイレクト
+        apiClient.adminLogout();
+        if (window.location.pathname.includes('admin')) {
+            window.location.href = 'login.html';
+        }
+        return '認証が必要です。ログインしてください。';
+    }
+    
+    return error.message || defaultMessage;
+}
+
+// 日付フォーマット用のヘルパー関数
+function formatDate(date, format = CONFIG.UI.DATE_FORMAT) {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleDateString('ja-JP');
+}
+
+function formatDateTime(date) {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleString('ja-JP');
+}
