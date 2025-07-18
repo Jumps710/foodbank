@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>フードパントリー予約フォーム</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .form-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+        }
+        
+        .form-section h3 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .required::after {
+            content: " *";
+            color: #ff4444;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        .radio-group,
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .radio-item,
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        input[type="radio"],
+        input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        
+        .time-slots {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .time-slot {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .time-slot:hover {
+            border-color: #4CAF50;
+            background-color: #f5f5f5;
+        }
+        
+        .time-slot input[type="radio"] {
+            margin-right: 10px;
+        }
+        
+        .time-slot.selected {
+            border-color: #4CAF50;
+            background-color: #e8f5e9;
+        }
+        
+        .household-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .info-box {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .submit-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        
+        .submit-button:hover {
+            background-color: #45a049;
+        }
+        
+        .submit-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        @media (max-width: 600px) {
+            .form-container {
+                padding: 20px;
+            }
+            
+            .household-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>フードパントリー市川</h1>
+            <h2>予約申し込みフォーム</h2>
+            <p>開催日: 2024年5月11日（土）</p>
+        </div>
+        
+        <div class="form-container">
+            <div class="info-box">
+                <p><strong>予約受付期間:</strong> 5月12日（日）〜 5月8日（水）22:00まで</p>
+                <p><strong>開催場所:</strong> 市川市大和田3丁目23-10（二九八家いわせ様の隣）</p>
+            </div>
+            
+            <form id="reservationForm">
+                <!-- 基本情報セクション -->
+                <div class="form-section">
+                    <h3>基本情報</h3>
+                    
+                    <div class="form-group">
+                        <label for="nameKana" class="required">氏名（カタカナ・フルネーム）</label>
+                        <input type="text" id="nameKana" name="nameKana" required 
+                               placeholder="例: ヤマダタロウ" pattern="^[ァ-ヴー\s]+$">
+                        <small>※同一のカタカナ氏名で過去に利用されている場合、利用履歴が自動で更新されます</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="nameKanji">氏名（漢字）</label>
+                        <input type="text" id="nameKanji" name="nameKanji" 
+                               placeholder="例: 山田太郎">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="area" class="required">お住まいの地域</label>
+                        <input type="text" id="area" name="area" required 
+                               placeholder="例: 真間、八幡、曽谷など">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact" class="required">連絡先（メールアドレスまたは電話番号）</label>
+                        <input type="text" id="contact" name="contact" required 
+                               placeholder="例: example@email.com または 090-1234-5678">
+                    </div>
+                </div>
+                
+                <!-- 予約情報セクション -->
+                <div class="form-section">
+                    <h3>予約情報</h3>
+                    
+                    <div class="form-group">
+                        <label>開催時間</label>
+                        <input type="text" value="10:00〜17:00" readonly style="background-color: #f8f9fa;">
+                        <small>※開催時間内であればいつでもお越しいただけます</small>
+                    </div>
+                </div>
+                
+                <!-- 世帯情報セクション -->
+                <div class="form-section">
+                    <h3>世帯情報</h3>
+                    
+                    <div class="household-grid">
+                        <div class="form-group">
+                            <label for="adults" class="required">大人の人数</label>
+                            <input type="number" id="adults" name="adults" min="0" required value="1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="children" class="required">子供の人数</label>
+                            <input type="number" id="children" name="children" min="0" required value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="householdDetails">世帯構成の詳細</label>
+                        <textarea id="householdDetails" name="householdDetails" rows="3" 
+                                  placeholder="例: 男性40代1名、女性30代1名、男の子8歳1名"></textarea>
+                    </div>
+                </div>
+                
+                <!-- 希望食品セクション -->
+                <div class="form-section">
+                    <h3>希望する食品・物資</h3>
+                    
+                    <div class="form-group">
+                        <label for="requestedItems">希望する食品</label>
+                        <textarea id="requestedItems" name="requestedItems" rows="3" 
+                                  placeholder="例: お米、パン、調味料、缶詰など"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>おむつ・粉ミルクの必要性</label>
+                        <div class="radio-group">
+                            <label class="radio-item">
+                                <input type="radio" name="babyNeeds" value="不要" checked>
+                                不要
+                            </label>
+                            <label class="radio-item">
+                                <input type="radio" name="babyNeeds" value="必要">
+                                必要
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" id="babyNeedsDetails" style="display: none;">
+                        <label for="babyNeedsSpec">必要なサイズ・種類をご記入ください</label>
+                        <input type="text" id="babyNeedsSpec" name="babyNeedsSpec" 
+                               placeholder="例: おむつLサイズ、粉ミルク">
+                    </div>
+                </div>
+                
+                <!-- その他の情報セクション -->
+                <div class="form-section">
+                    <h3>その他の情報</h3>
+                    
+                    <div class="form-group">
+                        <label>お手持ちの調理器具（複数選択可）</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="cookingEquipment" value="電子レンジ">
+                                電子レンジ
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="cookingEquipment" value="ガスコンロ">
+                                ガスコンロ
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="cookingEquipment" value="炊飯器">
+                                炊飯器
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="cookingEquipment" value="電気湯沸かし器">
+                                電気湯沸かし器
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="allergies">アレルギーの有無</label>
+                        <input type="text" id="allergies" name="allergies" 
+                               placeholder="アレルギーがある場合は記入してください">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="visitCount" class="required">フードパントリーの利用回数</label>
+                        <select id="visitCount" name="visitCount" required>
+                            <option value="">選択してください</option>
+                            <option value="はじめて">はじめて</option>
+                            <option value="2回目">2回目</option>
+                            <option value="3-5回">3-5回</option>
+                            <option value="それ以上">それ以上</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">備考・連絡事項</label>
+                        <textarea id="notes" name="notes" rows="3" 
+                                  placeholder="その他ご連絡事項があればご記入ください"></textarea>
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <p><strong>重要:</strong> お米を入れられる袋、もしくは大きめの空のペットボトルを持ってきてください。</p>
+                    <p>在庫状況によっては、袋入りのお米ではなく、小分けにしてお渡しになります。</p>
+                </div>
+                
+                <!-- 個人情報取得の同意 -->
+                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 4px; margin: 20px 0;">
+                    <h4 style="margin-bottom: 10px;">個人情報の取り扱いについて</h4>
+                    <p style="font-size: 14px; line-height: 1.5; margin-bottom: 15px;">
+                        ご入力いただいた個人情報は、フードパントリーの運営・連絡・統計分析の目的でのみ使用し、
+                        第三者に提供することはありません。詳細は
+                        <a href="#" style="color: #3498db;">プライバシーポリシー</a>をご確認ください。
+                    </p>
+                    <label style="display: flex; align-items: center; font-size: 16px;">
+                        <input type="checkbox" name="privacy_consent" required style="margin-right: 10px;">
+                        個人情報の取り扱いに同意します（必須）
+                    </label>
+                </div>
+                
+                <button type="submit" class="submit-button">予約を申し込む</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // フォームの動的な振る舞い
+        document.addEventListener('DOMContentLoaded', function() {
+            // おむつ・粉ミルクの詳細表示制御
+            const babyNeedsRadios = document.querySelectorAll('input[name="babyNeeds"]');
+            const babyNeedsDetails = document.getElementById('babyNeedsDetails');
+            
+            babyNeedsRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === '必要') {
+                        babyNeedsDetails.style.display = 'block';
+                    } else {
+                        babyNeedsDetails.style.display = 'none';
+                    }
+                });
+            });
+            
+            // 時間帯選択のビジュアルフィードバック
+            const timeSlots = document.querySelectorAll('.time-slot');
+            timeSlots.forEach(slot => {
+                slot.addEventListener('click', function() {
+                    timeSlots.forEach(s => s.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+            
+            // フォーム送信処理
+            document.getElementById('reservationForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('予約フォームのモックアップです。実際の送信処理は実装されていません。');
+            });
+        });
+    </script>
+</body>
+</html>

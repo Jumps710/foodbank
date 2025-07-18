@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>フードパントリー管理システム</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* サイドバー */
+        .sidebar {
+            width: 260px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background-color: #243342;
+            border-bottom: 1px solid #1a252f;
+        }
+        
+        .sidebar-header h1 {
+            font-size: 1.4em;
+            margin: 0;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .sidebar-menu > li {
+            border-bottom: 1px solid #243342;
+        }
+        
+        .sidebar-menu a {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        
+        .sidebar-menu a:hover {
+            background-color: #34495e;
+        }
+        
+        .sidebar-menu a.active {
+            background-color: #3498db;
+        }
+        
+        .sidebar-submenu {
+            list-style: none;
+            padding: 0;
+            background-color: #243342;
+            display: none;
+        }
+        
+        .sidebar-submenu.active {
+            display: block;
+        }
+        
+        .sidebar-submenu a {
+            padding-left: 40px;
+            font-size: 0.9em;
+        }
+        
+        /* メインコンテンツ */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .main-header {
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .main-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        /* カード */
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        /* ダッシュボード */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #3498db;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        
+        /* フィルター */
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-item label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .filter-item select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+        
+        /* グラフコンテナ */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        /* テーブル */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* ボタン */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        /* ユーティリティ */
+        .text-right {
+            text-align: right;
+        }
+        
+        .mb-0 {
+            margin-bottom: 0;
+        }
+        
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -260px;
+                height: 100%;
+                z-index: 1000;
+                transition: left 0.3s;
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- サイドバー -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h1>フードパントリー<br>管理システム</h1>
+        </div>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="#" class="active">ダッシュボード</a>
+            </li>
+            <li>
+                <a href="#" onclick="toggleSubmenu('pantry-menu')">パントリー管理</a>
+                <ul class="sidebar-submenu" id="pantry-menu">
+                    <li><a href="#">パントリーを作成</a></li>
+                    <li><a href="#">パントリー一覧</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">予約状況</a>
+            </li>
+            <li>
+                <a href="#" onclick="toggleSubmenu('report-menu')">レポート</a>
+                <ul class="sidebar-submenu active" id="report-menu">
+                    <li><a href="#" class="active">ダッシュボード</a></li>
+                    <li><a href="#">過去の利用履歴</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">ログ管理</a>
+            </li>
+        </ul>
+    </nav>
+    
+    <!-- メインコンテンツ -->
+    <div class="main-content">
+        <header class="main-header">
+            <h2>ダッシュボード</h2>
+            <div>
+                <span>ログイン: 管理者</span>
+            </div>
+        </header>
+        
+        <div class="main-body">
+            <!-- フィルター -->
+            <div class="card">
+                <h2>フィルター設定</h2>
+                <div class="filter-bar">
+                    <div class="filter-item">
+                        <label>期間:</label>
+                        <select id="period-filter">
+                            <option value="all">全期間累計</option>
+                            <option value="fiscal">年度（4月〜3月）</option>
+                            <option value="yearly">年別（1月〜12月）</option>
+                            <option value="monthly">月別</option>
+                            <option value="custom">カスタム期間</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>年度/年:</label>
+                        <select id="year-filter">
+                            <option value="2024">2024年度</option>
+                            <option value="2023">2023年度</option>
+                            <option value="2022">2022年度</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>開催場所:</label>
+                        <select id="location-filter">
+                            <option value="all">すべて</option>
+                            <option value="市役所本庁舎">市役所本庁舎</option>
+                            <option value="ニコット">ニコット</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <button class="btn btn-primary">フィルター適用</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 統計カード -->
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <h3>全利用者数</h3>
+                    <div class="stat-value">1,256</div>
+                    <div class="stat-label">2024年度累計</div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>新規利用者</h3>
+                    <div class="stat-value">156</div>
+                    <div class="stat-label">今年度新規登録</div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>月平均利用者数</h3>
+                    <div class="stat-value">104.6</div>
+                    <div class="stat-label">2024年度</div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>リピート率</h3>
+                    <div class="stat-value">87.6%</div>
+                    <div class="stat-label">2回以上利用</div>
+                </div>
+            </div>
+            
+            <!-- 利用者数遷移グラフ -->
+            <div class="card">
+                <h2>利用者数遷移</h2>
+                <div class="chart-container">
+                    <!-- ここにChart.jsなどでグラフを描画 -->
+                    <canvas id="usage-trend-chart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 2カラムレイアウト -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- 利用者ベストテン -->
+                <div class="card">
+                    <h2>利用者ベスト10</h2>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>順位</th>
+                                <th>氏名（カナ）</th>
+                                <th>利用回数</th>
+                                <th>地域</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td><a href="#">ヤマダタロウ</a></td>
+                                <td>24回</td>
+                                <td>八幡</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td><a href="#">サトウハナコ</a></td>
+                                <td>22回</td>
+                                <td>真間</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td><a href="#">タナカイチロウ</a></td>
+                                <td>20回</td>
+                                <td>曽谷</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td><a href="#">スズキジロウ</a></td>
+                                <td>18回</td>
+                                <td>菅野</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td><a href="#">タカハシミツコ</a></td>
+                                <td>17回</td>
+                                <td>大洲</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- カテゴリ分布 -->
+                <div class="card">
+                    <h2>世帯構成分布</h2>
+                    <div class="chart-container">
+                        <!-- ここにパイチャートを描画 -->
+                        <canvas id="household-pie-chart"></canvas>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span>単身世帯</span>
+                            <strong>23.4%</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span>2-3人世帯</span>
+                            <strong>45.2%</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span>4人以上世帯</span>
+                            <strong>31.4%</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 地域別分布 -->
+            <div class="card">
+                <h2>地域別利用状況</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>地域</th>
+                            <th>利用者数</th>
+                            <th>構成比</th>
+                            <th>前年比</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>八幡</td>
+                            <td>234</td>
+                            <td>18.6%</td>
+                            <td style="color: #27ae60;">+12.3%</td>
+                        </tr>
+                        <tr>
+                            <td>真間</td>
+                            <td>198</td>
+                            <td>15.8%</td>
+                            <td style="color: #27ae60;">+5.2%</td>
+                        </tr>
+                        <tr>
+                            <td>曽谷</td>
+                            <td>167</td>
+                            <td>13.3%</td>
+                            <td style="color: #e74c3c;">-2.1%</td>
+                        </tr>
+                        <tr>
+                            <td>菅野</td>
+                            <td>145</td>
+                            <td>11.5%</td>
+                            <td style="color: #27ae60;">+8.7%</td>
+                        </tr>
+                        <tr>
+                            <td>大洲</td>
+                            <td>132</td>
+                            <td>10.5%</td>
+                            <td style="color: #27ae60;">+15.4%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // サブメニューの開閉
+        function toggleSubmenu(menuId) {
+            const submenu = document.getElementById(menuId);
+            submenu.classList.toggle('active');
+        }
+        
+        // ダミーのグラフ描画（実際はChart.jsなどを使用）
+        window.addEventListener('DOMContentLoaded', function() {
+            // 利用者数遷移グラフ
+            const trendCanvas = document.getElementById('usage-trend-chart');
+            if (trendCanvas) {
+                // ここでChart.jsを使ってグラフを描画
+                console.log('利用者数遷移グラフを描画');
+            }
+            
+            // 世帯構成パイチャート
+            const pieCanvas = document.getElementById('household-pie-chart');
+            if (pieCanvas) {
+                // ここでChart.jsを使ってパイチャートを描画
+                console.log('世帯構成パイチャートを描画');
+            }
+        });
+    </script>
+</body>
+</html>

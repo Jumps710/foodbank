@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パントリー管理 - フードパントリー管理システム</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* サイドバー（省略、同じスタイル） */
+        .sidebar {
+            width: 260px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background-color: #243342;
+            border-bottom: 1px solid #1a252f;
+        }
+        
+        .sidebar-header h1 {
+            font-size: 1.4em;
+            margin: 0;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .sidebar-menu > li {
+            border-bottom: 1px solid #243342;
+        }
+        
+        .sidebar-menu a {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        
+        .sidebar-menu a:hover {
+            background-color: #34495e;
+        }
+        
+        .sidebar-menu a.active {
+            background-color: #3498db;
+        }
+        
+        .sidebar-submenu {
+            list-style: none;
+            padding: 0;
+            background-color: #243342;
+            display: none;
+        }
+        
+        .sidebar-submenu.active {
+            display: block;
+        }
+        
+        .sidebar-submenu a {
+            padding-left: 40px;
+            font-size: 0.9em;
+        }
+        
+        /* メインコンテンツ */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .main-header {
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .main-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        /* カード */
+        .card {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            max-width: 800px;
+        }
+        
+        .card h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        /* フォーム（縦長・コンパクト） */
+        .form-section {
+            margin-bottom: 25px;
+        }
+        
+        .form-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group input[type="datetime-local"],
+        .form-group input[type="number"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+            max-width: 600px;
+        }
+        
+        .form-group input[readonly] {
+            background-color: #f8f9fa;
+            color: #6c757d;
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        /* 2カラムレイアウト（必要最小限） */
+        .form-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        /* ボタン */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #229954;
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        /* テーブル */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* ステータスバッジ */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .status-upcoming {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .status-open {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .status-closed {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .status-completed {
+            background-color: #95a5a6;
+            color: white;
+        }
+        
+        /* アクション */
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .actions button {
+            padding: 5px 15px;
+            font-size: 14px;
+        }
+        
+        /* タブ */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .tab.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* 検索バー */
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        /* エラーメッセージ */
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <!-- サイドバー -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h1>フードパントリー<br>管理システム</h1>
+        </div>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="#">ダッシュボード</a>
+            </li>
+            <li>
+                <a href="#" onclick="toggleSubmenu('pantry-menu')">パントリー管理</a>
+                <ul class="sidebar-submenu active" id="pantry-menu">
+                    <li><a href="#" onclick="switchTab('create')" class="active">パントリーを作成</a></li>
+                    <li><a href="#" onclick="switchTab('list')">パントリー一覧</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">予約状況</a>
+            </li>
+            <li>
+                <a href="#" onclick="toggleSubmenu('user-menu')">ユーザー管理</a>
+                <ul class="sidebar-submenu" id="user-menu">
+                    <li><a href="#">ユーザー一覧</a></li>
+                    <li><a href="#">管理者一覧</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#" onclick="toggleSubmenu('report-menu')">レポート</a>
+                <ul class="sidebar-submenu" id="report-menu">
+                    <li><a href="#">ダッシュボード</a></li>
+                    <li><a href="#">過去の利用履歴</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">ログ管理</a>
+            </li>
+        </ul>
+    </nav>
+    
+    <!-- メインコンテンツ -->
+    <div class="main-content">
+        <header class="main-header">
+            <h2>パントリー管理</h2>
+            <div>
+                <span>ログイン: 管理者</span>
+            </div>
+        </header>
+        
+        <div class="main-body">
+            <div class="card">
+                <div class="tabs">
+                    <div class="tab active" onclick="switchMainTab('create')">パントリーを作成</div>
+                    <div class="tab" onclick="switchMainTab('list')">パントリー一覧</div>
+                </div>
+                
+                <!-- パントリー作成タブ -->
+                <div id="create-tab" class="tab-content active">
+                    <form id="pantry-form">
+                        <div class="form-section">
+                            <h3>基本情報</h3>
+                            
+                            <div class="form-group">
+                                <label>開催日 <span style="color: red;">*</span></label>
+                                <input type="date" name="event_date" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>開催時間</label>
+                                <input type="text" name="event_time" placeholder="例: 10:00-17:00" value="10:00-17:00">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>開催場所 <span style="color: red;">*</span></label>
+                                <select name="location" required onchange="updateLocationDetails()">
+                                    <option value="">選択してください</option>
+                                    <option value="市役所本庁舎">市役所本庁舎</option>
+                                    <option value="ニコット">ニコット</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>パントリーID（自動生成）</label>
+                                <input type="text" name="pantry_id" readonly>
+                                <small>開催日と場所を選択すると自動で生成されます</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>開催場所住所（自動設定）</label>
+                                <input type="text" name="location_address" readonly>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>アクセス方法（自動設定）</label>
+                                <input type="text" name="location_access" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3>予約受付設定</h3>
+                            
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label>予約開始日時 <span style="color: red;">*</span></label>
+                                    <input type="datetime-local" name="registration_start" required onchange="checkDateOverlap()">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>予約終了日時 <span style="color: red;">*</span></label>
+                                    <input type="datetime-local" name="registration_end" required onchange="checkDateOverlap()">
+                                </div>
+                            </div>
+                            
+                            <div id="overlap-error" class="error-message" style="display: none;">
+                                ⚠️ 指定された期間は既存のパントリーと重複しています。予約フォームのURLは不変のため、重複は許可されません。
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>総定員数</label>
+                                <input type="number" name="capacity_total" value="100" min="1">
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3>表示テキスト設定</h3>
+                            
+                            <div class="form-group">
+                                <label>タイトル文 <span style="color: red;">*</span></label>
+                                <input type="text" name="title" required placeholder="例: 5月度フードパントリー（市役所本庁舎）">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>ヘッダー案内文</label>
+                                <textarea name="header_message" rows="3" 
+                                          placeholder="予約フォームの上部に表示される案内文です。開催日時や注意事項などを記載してください。"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>自動応答メール案内文</label>
+                                <textarea name="auto_reply_message" rows="4" 
+                                          placeholder="予約完了時に自動送信されるメールの本文です。確認事項や持ち物などを記載してください。"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 30px;">
+                            <button type="submit" class="btn btn-success">パントリーを作成</button>
+                            <button type="button" class="btn btn-secondary" onclick="resetForm()">リセット</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- パントリー一覧タブ -->
+                <div id="list-tab" class="tab-content">
+                    <div class="search-bar">
+                        <input type="text" class="search-input" placeholder="パントリーIDまたは場所で検索...">
+                        <button class="btn btn-primary">検索</button>
+                    </div>
+                    
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>パントリーID</th>
+                                <th>開催日</th>
+                                <th>開催場所</th>
+                                <th>予約受付期間</th>
+                                <th>予約数/定員</th>
+                                <th>ステータス</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><a href="#" style="color: #3498db;">24.05.11.市役所本庁舎</a></td>
+                                <td>2024/05/11（土）</td>
+                                <td>市役所本庁舎</td>
+                                <td>05/12 00:00 〜 05/08 22:00</td>
+                                <td>42 / 100</td>
+                                <td><span class="status-badge status-open">予約受付中</span></td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn btn-primary">編集</button>
+                                        <button class="btn btn-danger">削除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><a href="#" style="color: #3498db;">24.04.13.ニコット</a></td>
+                                <td>2024/04/13（土）</td>
+                                <td>ニコット</td>
+                                <td>04/14 00:00 〜 04/10 22:00</td>
+                                <td>68 / 100</td>
+                                <td><span class="status-badge status-completed">完了</span></td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn btn-primary">詳細</button>
+                                        <button class="btn btn-secondary" disabled>削除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><a href="#" style="color: #3498db;">24.06.08.市役所本庁舎</a></td>
+                                <td>2024/06/08（土）</td>
+                                <td>市役所本庁舎</td>
+                                <td>06/09 00:00 〜 06/05 22:00</td>
+                                <td>0 / 80</td>
+                                <td><span class="status-badge status-upcoming">予約開始前</span></td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn btn-primary">編集</button>
+                                        <button class="btn btn-danger">削除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 場所情報のマスタデータ
+        const locationData = {
+            '市役所本庁舎': {
+                address: '市川市八幡1丁目1番1号',
+                access: 'JR総武線本八幡駅より徒歩5分'
+            },
+            'ニコット': {
+                address: '市川市大和田3丁目23-10',
+                access: 'JR総武線市川駅よりバス10分'
+            }
+        };
+        
+        // サブメニューの開閉
+        function toggleSubmenu(menuId) {
+            const submenu = document.getElementById(menuId);
+            submenu.classList.toggle('active');
+        }
+        
+        // タブ切り替え
+        function switchMainTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+        
+        // 場所詳細の自動設定
+        function updateLocationDetails() {
+            const location = document.querySelector('select[name="location"]').value;
+            const dateInput = document.querySelector('input[name="event_date"]');
+            
+            if (location && locationData[location]) {
+                document.querySelector('input[name="location_address"]').value = locationData[location].address;
+                document.querySelector('input[name="location_access"]').value = locationData[location].access;
+                
+                // パントリーIDの更新
+                updatePantryId();
+            } else {
+                document.querySelector('input[name="location_address"]').value = '';
+                document.querySelector('input[name="location_access"]').value = '';
+                document.querySelector('input[name="pantry_id"]').value = '';
+            }
+        }
+        
+        // パントリーID自動生成
+        function updatePantryId() {
+            const dateInput = document.querySelector('input[name="event_date"]');
+            const location = document.querySelector('select[name="location"]').value;
+            
+            if (dateInput.value && location) {
+                const date = new Date(dateInput.value);
+                const yy = date.getFullYear().toString().slice(-2);
+                const mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                const dd = ('0' + date.getDate()).slice(-2);
+                document.querySelector('input[name="pantry_id"]').value = `${yy}.${mm}.${dd}.${location}`;
+            }
+        }
+        
+        // 日時重複チェック
+        function checkDateOverlap() {
+            const startDate = document.querySelector('input[name="registration_start"]').value;
+            const endDate = document.querySelector('input[name="registration_end"]').value;
+            const errorDiv = document.getElementById('overlap-error');
+            
+            if (startDate && endDate) {
+                // 実際の実装では、既存のパントリーとの重複をチェック
+                // ここではダミーの重複チェック
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                
+                // 例: 2024年5月中は重複とする（デモ用）
+                if (start.getMonth() === 4 && start.getFullYear() === 2024) {
+                    errorDiv.style.display = 'block';
+                } else {
+                    errorDiv.style.display = 'none';
+                }
+            }
+        }
+        
+        // フォームリセット
+        function resetForm() {
+            document.getElementById('pantry-form').reset();
+            document.getElementById('overlap-error').style.display = 'none';
+        }
+        
+        // イベントリスナー
+        document.querySelector('input[name="event_date"]').addEventListener('change', updatePantryId);
+        
+        // フォーム送信
+        document.getElementById('pantry-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 重複チェック
+            const errorDiv = document.getElementById('overlap-error');
+            if (errorDiv.style.display === 'block') {
+                alert('予約期間の重複があります。日時を調整してください。');
+                return;
+            }
+            
+            alert('パントリーを作成しました（モックアップ）');
+        });
+    </script>
+</body>
+</html>
