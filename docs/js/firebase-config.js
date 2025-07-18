@@ -3,24 +3,25 @@
  * Firebase Console から取得した設定をここに貼り付けてください
  */
 
-// TODO: Firebase Console から実際の設定値に置き換えてください
+// Firebase Console から取得した実際の設定値
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyA9bIqouIAlX3TV7YrTn-6SR5eqnQSp_mQ",
+  authDomain: "foodbank-management.firebaseapp.com",
+  projectId: "foodbank-management",
+  storageBucket: "foodbank-management.firebasestorage.app",
+  messagingSenderId: "65683417930",
+  appId: "1:65683417930:web:f052adacf01fe85236efb3",
+  measurementId: "G-Q541RGVB48"
 };
 
 // Firebase初期化
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
 import { 
   getAuth, 
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged 
-} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+} from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js';
 
 // Firebase アプリケーションを初期化
 const app = initializeApp(firebaseConfig);
