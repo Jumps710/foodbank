@@ -217,25 +217,95 @@ function isAuthenticatedApi(data) {
 }
 
 /**
- * 管理者ログイン処理
+ * 管理者ログイン処理（Firebase）
  */
 function handleAdminLogin(credentials) {
-  // 開発中は固定の認証情報
-  if (credentials.username === 'admin' && credentials.password === 'admin123') {
-    return {
-      success: true,
-      token: 'dev-token-' + Date.now(),
-      user: {
-        username: 'admin',
-        role: 'administrator'
+  try {
+    // Firebase IDトークンを検証
+    if (credentials.firebaseToken) {
+      const verification = verifyFirebaseToken(credentials.firebaseToken);
+      
+      if (verification.success) {
+        // 管理者権限をチェック（メールアドレスで判定）
+        const adminEmails = [
+          'admin@foodbank.local',
+          // 他の管理者メールアドレスを追加
+        ];
+        
+        if (adminEmails.includes(credentials.email)) {
+          return {
+            success: true,
+            token: 'firebase-' + Date.now(),
+            user: {
+              uid: credentials.uid,
+              email: credentials.email,
+              role: 'administrator'
+            }
+          };
+        } else {
+          return {
+            success: false,
+            error: { code: 'UNAUTHORIZED', message: '管理者権限がありません' }
+          };
+        }
+      } else {
+        return verification;
       }
+    }
+    
+    // 開発用フォールバック（本番では削除）
+    if (credentials.email === 'admin@foodbank.local' && credentials.password === 'admin123') {
+      return {
+        success: true,
+        token: 'dev-token-' + Date.now(),
+        user: {
+          email: 'admin@foodbank.local',
+          role: 'administrator'
+        }
+      };
+    }
+    
+    return {
+      success: false,
+      error: { code: 'INVALID_CREDENTIALS', message: '認証情報が正しくありません' }
+    };
+    
+  } catch (error) {
+    Logger.log('ログインエラー: ' + error.toString());
+    return {
+      success: false,
+      error: { code: 'INTERNAL_ERROR', message: 'ログイン処理中にエラーが発生しました' }
     };
   }
-  
-  return {
-    success: false,
-    error: { code: 'INVALID_CREDENTIALS', message: '認証情報が正しくありません' }
-  };
+}
+
+/**
+ * Firebase IDトークンの検証
+ */
+function verifyFirebaseToken(idToken) {
+  try {
+    // 実際の実装では、Firebase Admin SDKまたはGoogle Cloud Functionsを使用
+    // GASでは直接検証が困難なため、簡易的な検証を行う
+    
+    // TODOで実際のトークン検証を実装
+    // 現在は開発用として常に成功を返す
+    Logger.log('Firebase IDトークン検証（開発用）: ' + idToken.substring(0, 20) + '...');
+    
+    return {
+      success: true,
+      decoded: {
+        uid: 'dev-uid',
+        email: 'admin@foodbank.local'
+      }
+    };
+    
+  } catch (error) {
+    Logger.log('Firebase トークン検証エラー: ' + error.toString());
+    return {
+      success: false,
+      error: { code: 'INVALID_TOKEN', message: 'Firebaseトークンが無効です' }
+    };
+  }
 }
 
 /**
