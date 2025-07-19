@@ -169,6 +169,9 @@ function handleApiRequest(e, method) {
       case 'adminLogin':
         result = handleAdminLogin(data);
         break;
+      case 'adminRegister':
+        result = handleAdminRegister(data);
+        break;
         
       default:
         result = {
@@ -275,6 +278,49 @@ function handleAdminLogin(credentials) {
     return {
       success: false,
       error: { code: 'INTERNAL_ERROR', message: 'ログイン処理中にエラーが発生しました' }
+    };
+  }
+}
+
+/**
+ * 管理者アカウント作成処理（Firebase）
+ */
+function handleAdminRegister(credentials) {
+  try {
+    // Firebase IDトークンを検証
+    if (credentials.firebaseToken) {
+      const verification = verifyFirebaseToken(credentials.firebaseToken);
+      
+      if (verification.success) {
+        // 新規管理者として登録
+        Logger.log('新規管理者アカウント作成: ' + credentials.email);
+        
+        return {
+          success: true,
+          token: 'firebase-new-' + Date.now(),
+          user: {
+            uid: credentials.uid,
+            email: credentials.email,
+            role: 'administrator',
+            isNew: true
+          },
+          message: '管理者アカウントが作成されました'
+        };
+      } else {
+        return verification;
+      }
+    }
+    
+    return {
+      success: false,
+      error: { code: 'INVALID_REQUEST', message: 'Firebase認証が必要です' }
+    };
+    
+  } catch (error) {
+    Logger.log('アカウント作成エラー: ' + error.toString());
+    return {
+      success: false,
+      error: { code: 'INTERNAL_ERROR', message: 'アカウント作成中にエラーが発生しました' }
     };
   }
 }
