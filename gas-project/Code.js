@@ -71,6 +71,13 @@ function doPost(e) {
 }
 
 /**
+ * OPTIONSリクエストの処理（CORS プリフライト）
+ */
+function doOptions(e) {
+  return handleApiRequest(e, 'OPTIONS');
+}
+
+/**
  * API リクエストハンドラー
  */
 function handleApiRequest(e, method) {
@@ -78,6 +85,16 @@ function handleApiRequest(e, method) {
     // CORS ヘッダーを設定
     const output = ContentService.createTextOutput();
     output.setMimeType(ContentService.MimeType.JSON);
+    
+    // CORSヘッダーを追加
+    output.setHeader('Access-Control-Allow-Origin', '*');
+    output.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    output.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    // OPTIONSリクエスト（プリフライト）の処理
+    if (method === 'OPTIONS') {
+      return output.setContent('{}');
+    }
     
     let data = {};
     let action = '';
