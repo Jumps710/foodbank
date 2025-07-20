@@ -12,7 +12,14 @@ function doGet(e) {
     
     // API リクエストの場合
     if (action) {
-      return handleApiRequest(e, 'GET');
+      const result = handleApiRequest(e, 'GET');
+      // JSONP対応のためcallbackパラメータをチェック
+      const callback = e.parameter.callback;
+      if (callback) {
+        return ContentService.createTextOutput(callback + '(' + result.getContent() + ')')
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      }
+      return result;
     }
     
     const page = e.parameter.page || 'form';
