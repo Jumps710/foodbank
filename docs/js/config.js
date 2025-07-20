@@ -53,6 +53,23 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
     CONFIG.API_BASE_URL = 'http://localhost:3000/api'; // ローカル開発サーバー
 }
 
-// デバッグ情報をコンソール出力
+// デバッグ情報をコンソール出力  
 console.log('🔧 Config.js ロード完了 - API URL:', CONFIG.API_BASE_URL);
-console.log('📅 Config バージョン: 2025.07.20-v6 (本番デプロイ完了 - パブリックアクセス)');
+console.log('📅 Config バージョン: 2025.07.20-v7 (強制キャッシュクリア実装)');
+console.log('🎯 期待するURL: AKfycbz2twbdzRlljcTMzF26UKI-YDSKA9ijERPuTTICjXydR0kA1jVZiBvtS23CneUKa-j3sw');
+console.log('❌ 古いURL: AKfycbxRezzNB1KT5WAaIVWRtTX7Sr07BiihSmOGKHPmNIcmD4rwffRiCg5StemDplHEquvf');
+
+// APIアクセス監視
+const originalFetch = window.fetch;
+window.fetch = function(...args) {
+    const url = args[0];
+    if (typeof url === 'string' && url.includes('script.google.com')) {
+        console.log('🌐 API Call:', url);
+        if (url.includes('AKfycbxRezzN')) {
+            console.error('❌ 古いURL使用検出!', url);
+        } else if (url.includes('AKfycbz2twb')) {
+            console.log('✅ 新しいURL使用確認!', url);
+        }
+    }
+    return originalFetch.apply(this, args);
+};

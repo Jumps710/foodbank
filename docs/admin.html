@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理ダッシュボード - フードパントリー管理システム</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>管理ダッシュボード - フードパントリー管理システム v6 (Cache-Cleared)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -131,9 +134,13 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/config.js?v=20250720-6"></script>
-    <script src="js/firebase-config-simple.js?v=20250720-6"></script>
-    <script src="js/api.js?v=20250720-6"></script>
+    <script>
+        // 強制キャッシュクリア
+        const timestamp = Date.now();
+        document.write('<script src="js/config.js?v=' + timestamp + '"><\/script>');
+        document.write('<script src="js/firebase-config-simple.js?v=' + timestamp + '"><\/script>');
+        document.write('<script src="js/api.js?v=' + timestamp + '"><\/script>');
+    </script>
     <script>
         // ページ管理
         let currentPage = 'dashboard';
