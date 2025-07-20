@@ -52,3 +52,7 @@ const CONFIG = {
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     CONFIG.API_BASE_URL = 'http://localhost:3000/api'; // ローカル開発サーバー
 }
+
+// デバッグ情報をコンソール出力
+console.log('🔧 Config.js ロード完了 - API URL:', CONFIG.API_BASE_URL);
+console.log('📅 Config バージョン: 2025.07.20-v3 (新GASデプロイメント対応)');
