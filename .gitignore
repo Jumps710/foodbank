@@ -105,3 +105,6 @@ deploy-logs/
 test-data/
 *.test.js
 *.spec.js
+
+# Project instructions (contains sensitive information)
+CLAUDE.md

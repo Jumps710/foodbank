@@ -10,14 +10,23 @@ function doGet(e) {
   try {
     const action = e.parameter.action;
     
-    // API リクエストの場合
+    // API リクエストの場合 - CORS対応
     if (action) {
       const result = handleApiRequest(e, 'GET');
+      
+      // CORSヘッダーを追加
+      result.setHeader('Access-Control-Allow-Origin', '*');
+      result.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      result.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      
       // JSONP対応のためcallbackパラメータをチェック
       const callback = e.parameter.callback;
       if (callback) {
         return ContentService.createTextOutput(callback + '(' + result.getContent() + ')')
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+          .setMimeType(ContentService.MimeType.JAVASCRIPT)
+          .setHeader('Access-Control-Allow-Origin', '*')
+          .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+          .setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       }
       return result;
     }
@@ -115,6 +124,14 @@ function handleApiRequest(e, method) {
       // GET の場合はパラメータから取得
       action = e.parameter.action;
       data = e.parameter;
+      
+      // GETパラメータから認証情報も取得
+      if (e.parameter.firebaseToken) {
+        data.firebaseToken = e.parameter.firebaseToken;
+      }
+      if (e.parameter.adminToken) {
+        data.adminToken = e.parameter.adminToken;
+      }
     }
     
     // 管理機能は認証チェック（開発中はスキップ）
@@ -239,8 +256,27 @@ function isAuthenticatedPost(data) {
  * API認証チェック
  */
 function isAuthenticatedApi(data) {
-  // 開発中は認証をスキップ
-  return true; // TODO: 実装
+  try {
+    // Firebaseトークンがある場合は認証済みとみなす
+    if (data && data.firebaseToken) {
+      Logger.log('Firebase認証トークンで認証: ' + data.firebaseToken.substring(0, 20) + '...');
+      return true;
+    }
+    
+    // 管理者トークンがある場合も認証済みとみなす
+    if (data && data.adminToken) {
+      Logger.log('管理者トークンで認証: ' + data.adminToken);
+      return true;
+    }
+    
+    // 開発中は認証をスキップ（本番では削除）
+    Logger.log('認証情報なし - 開発モードで許可');
+    return true;
+    
+  } catch (error) {
+    Logger.log('認証チェックエラー: ' + error.toString());
+    return false;
+  }
 }
 
 /**

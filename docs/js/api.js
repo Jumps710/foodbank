@@ -13,6 +13,9 @@ class ApiClient {
      */
     async request(endpoint, method = 'GET', data = null, useFormData = false) {
         try {
+            // Firebase認証状態を自動取得
+            await this.updateFirebaseToken();
+            
             const url = this.baseUrl + endpoint;
             const options = {
                 method: method,
@@ -38,9 +41,20 @@ class ApiClient {
                     
                     options.body = JSON.stringify(requestData);
                 }
+            } else if (method === 'GET') {
+                // GETリクエストでもFirebaseトークンを含める
+                const urlObj = new URL(url);
+                if (this.firebaseToken) {
+                    urlObj.searchParams.set('firebaseToken', this.firebaseToken);
+                }
+                if (this.adminToken) {
+                    urlObj.searchParams.set('adminToken', this.adminToken);
+                }
+                options.url = urlObj.toString();
             }
 
-            const response = await fetch(url, options);
+            const fetchUrl = options.url || url;
+            const response = await fetch(fetchUrl, options);
             
             // GAS Web App は常に 200 を返すため、レスポンス内容でエラーを判定
             const responseText = await response.text();
@@ -110,6 +124,22 @@ class ApiClient {
      */
     setFirebaseToken(token) {
         this.firebaseToken = token;
+    }
+
+    /**
+     * Firebase認証状態を自動更新
+     */
+    async updateFirebaseToken() {
+        try {
+            if (window.firebaseAuthManager && window.firebaseAuthManager.isAuthenticated()) {
+                const token = await window.firebaseAuthManager.getIdToken();
+                if (token) {
+                    this.firebaseToken = token;
+                }
+            }
+        } catch (error) {
+            console.warn('Firebaseトークン更新エラー:', error);
+        }
     }
 
     /**
