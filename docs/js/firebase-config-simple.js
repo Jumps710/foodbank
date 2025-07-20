@@ -1,6 +1,5 @@
 /**
- * Firebase設定
- * Firebase Console から取得した設定をここに貼り付けてください
+ * Firebase設定（ES5形式）
  */
 
 // Firebase Console から取得した実際の設定値
@@ -14,33 +13,70 @@ const firebaseConfig = {
   measurementId: "G-Q541RGVB48"
 };
 
-// Firebase初期化
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
-import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  signOut, 
-  onAuthStateChanged 
-} from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js';
-
-// Firebase アプリケーションを初期化
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
 // Firebase認証管理クラス
 class FirebaseAuthManager {
   constructor() {
-    this.auth = auth;
+    this.app = null;
+    this.auth = null;
     this.currentUser = null;
-    this.setupAuthStateListener();
+    this.initialized = false;
+    this.init();
+  }
+
+  /**
+   * Firebase初期化
+   */
+  async init() {
+    try {
+      // Firebase SDKをロード
+      if (!window.firebase) {
+        console.log('Firebase SDKをロード中...');
+        await this.loadFirebaseSDK();
+      }
+
+      // Firebase アプリケーションを初期化
+      this.app = firebase.initializeApp(firebaseConfig);
+      this.auth = firebase.auth();
+      
+      this.setupAuthStateListener();
+      this.initialized = true;
+      console.log('Firebase認証システムが初期化されました');
+    } catch (error) {
+      console.error('Firebase初期化エラー:', error);
+    }
+  }
+
+  /**
+   * Firebase SDKをロード
+   */
+  loadFirebaseSDK() {
+    return new Promise((resolve, reject) => {
+      if (window.firebase) {
+        resolve();
+        return;
+      }
+
+      // Firebase App SDK
+      const appScript = document.createElement('script');
+      appScript.src = 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js';
+      appScript.onload = () => {
+        // Firebase Auth SDK
+        const authScript = document.createElement('script');
+        authScript.src = 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js';
+        authScript.onload = resolve;
+        authScript.onerror = reject;
+        document.head.appendChild(authScript);
+      };
+      appScript.onerror = reject;
+      document.head.appendChild(appScript);
+    });
   }
 
   /**
    * 認証状態の監視
    */
   setupAuthStateListener() {
-    onAuthStateChanged(this.auth, (user) => {
+    this.auth.onAuthStateChanged((user) => {
       this.currentUser = user;
       if (user) {
         // ログイン済み
@@ -57,7 +93,11 @@ class FirebaseAuthManager {
    */
   async signInWithEmailAndPassword(email, password) {
     try {
-      const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
+      if (!this.initialized) {
+        await this.waitForInitialization();
+      }
+
+      const userCredential = await this.auth.signInWithEmailAndPassword(email, password);
       const user = userCredential.user;
       
       // IDトークンを取得
@@ -85,7 +125,11 @@ class FirebaseAuthManager {
    */
   async createUserWithEmailAndPassword(email, password) {
     try {
-      const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
+      if (!this.initialized) {
+        await this.waitForInitialization();
+      }
+
+      const userCredential = await this.auth.createUserWithEmailAndPassword(email, password);
       const user = userCredential.user;
       
       // IDトークンを取得
@@ -113,7 +157,7 @@ class FirebaseAuthManager {
    */
   async signOut() {
     try {
-      await signOut(this.auth);
+      await this.auth.signOut();
       return { success: true };
     } catch (error) {
       console.error('ログアウトエラー:', error);
@@ -151,6 +195,27 @@ class FirebaseAuthManager {
       }
     }
     return null;
+  }
+
+  /**
+   * 初期化完了まで待機
+   */
+  waitForInitialization() {
+    return new Promise((resolve) => {
+      if (this.initialized) {
+        resolve();
+        return;
+      }
+      
+      const check = () => {
+        if (this.initialized) {
+          resolve();
+        } else {
+          setTimeout(check, 100);
+        }
+      };
+      check();
+    });
   }
 
   /**

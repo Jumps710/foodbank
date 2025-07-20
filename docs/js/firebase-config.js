@@ -19,6 +19,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebas
 import { 
   getAuth, 
   signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
   signOut, 
   onAuthStateChanged 
 } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js';
@@ -69,6 +70,34 @@ class FirebaseAuthManager {
       };
     } catch (error) {
       console.error('Firebase認証エラー:', error);
+      return {
+        success: false,
+        error: {
+          code: error.code,
+          message: this.getErrorMessage(error.code)
+        }
+      };
+    }
+  }
+
+  /**
+   * メールとパスワードでアカウント作成
+   */
+  async createUserWithEmailAndPassword(email, password) {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
+      const user = userCredential.user;
+      
+      // IDトークンを取得
+      const idToken = await user.getIdToken();
+      
+      return {
+        success: true,
+        user: user,
+        token: idToken
+      };
+    } catch (error) {
+      console.error('Firebase アカウント作成エラー:', error);
       return {
         success: false,
         error: {
@@ -142,10 +171,13 @@ class FirebaseAuthManager {
       'auth/invalid-email': 'メールアドレスの形式が正しくありません',
       'auth/user-disabled': 'このアカウントは無効化されています',
       'auth/too-many-requests': 'ログイン試行回数が多すぎます。しばらく待ってから再試行してください',
-      'auth/network-request-failed': 'ネットワークエラーが発生しました'
+      'auth/network-request-failed': 'ネットワークエラーが発生しました',
+      'auth/email-already-in-use': 'このメールアドレスは既に使用されています',
+      'auth/weak-password': 'パスワードが弱すぎます。6文字以上にしてください',
+      'auth/operation-not-allowed': 'この操作は許可されていません'
     };
     
-    return errorMessages[errorCode] || 'ログインに失敗しました';
+    return errorMessages[errorCode] || 'エラーが発生しました';
   }
 }
 

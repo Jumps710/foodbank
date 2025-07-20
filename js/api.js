@@ -153,6 +153,46 @@ class ApiClient {
     }
 
     /**
+     * 管理者アカウント作成（Firebase）
+     */
+    async adminRegister(credentials) {
+        try {
+            // Firebase アカウント作成を実行
+            const authResult = await window.firebaseAuthManager.createUserWithEmailAndPassword(
+                credentials.email, 
+                credentials.password
+            );
+            
+            if (authResult.success) {
+                // Firebaseトークンを設定
+                this.setFirebaseToken(authResult.token);
+                
+                // GASに新規ユーザー情報を送信
+                const result = await this.post(CONFIG.ENDPOINTS.ADMIN_LOGIN, {
+                    action: 'adminRegister',
+                    firebaseToken: authResult.token,
+                    uid: authResult.user.uid,
+                    email: authResult.user.email
+                });
+                
+                if (result.success) {
+                    this.adminToken = result.token;
+                    localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_TOKEN, result.token);
+                }
+                
+                return result;
+            } else {
+                return authResult;
+            }
+        } catch (error) {
+            return {
+                success: false,
+                error: { message: error.message }
+            };
+        }
+    }
+
+    /**
      * 管理者ログアウト
      */
     async adminLogout() {

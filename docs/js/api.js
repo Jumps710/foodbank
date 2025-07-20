@@ -5,6 +5,7 @@ class ApiClient {
     constructor() {
         this.baseUrl = CONFIG.API_BASE_URL;
         this.adminToken = localStorage.getItem(CONFIG.STORAGE_KEYS.ADMIN_TOKEN);
+        this.firebaseToken = null;
     }
 
     /**
@@ -31,7 +32,8 @@ class ApiClient {
                     const requestData = {
                         action: data.action || endpoint.split('=')[1] || 'unknown',
                         data: data,
-                        adminToken: this.adminToken
+                        adminToken: this.adminToken,
+                        firebaseToken: this.firebaseToken
                     };
                     
                     options.body = JSON.stringify(requestData);
@@ -104,35 +106,111 @@ class ApiClient {
     // === 管理API ===
 
     /**
-     * 管理者ログイン
+     * Firebase認証トークンを設定
+     */
+    setFirebaseToken(token) {
+        this.firebaseToken = token;
+    }
+
+    /**
+     * 管理者ログイン（Firebase）
      */
     async adminLogin(credentials) {
-        const result = await this.post(CONFIG.ENDPOINTS.ADMIN_LOGIN, {
-            action: 'adminLogin',
-            ...credentials
-        });
-        
-        if (result.success && result.token) {
-            this.adminToken = result.token;
-            localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_TOKEN, result.token);
+        try {
+            // Firebase認証を実行
+            const authResult = await window.firebaseAuthManager.signInWithEmailAndPassword(
+                credentials.email, 
+                credentials.password
+            );
+            
+            if (authResult.success) {
+                // Firebaseトークンを設定
+                this.setFirebaseToken(authResult.token);
+                
+                // GASに認証情報を送信してセッション確立
+                const result = await this.post(CONFIG.ENDPOINTS.ADMIN_LOGIN, {
+                    action: 'adminLogin',
+                    firebaseToken: authResult.token,
+                    uid: authResult.user.uid,
+                    email: authResult.user.email
+                });
+                
+                if (result.success) {
+                    this.adminToken = result.token;
+                    localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_TOKEN, result.token);
+                }
+                
+                return result;
+            } else {
+                return authResult;
+            }
+        } catch (error) {
+            return {
+                success: false,
+                error: { message: error.message }
+            };
         }
-        
-        return result;
+    }
+
+    /**
+     * 管理者アカウント作成（Firebase）
+     */
+    async adminRegister(credentials) {
+        try {
+            // Firebase アカウント作成を実行
+            const authResult = await window.firebaseAuthManager.createUserWithEmailAndPassword(
+                credentials.email, 
+                credentials.password
+            );
+            
+            if (authResult.success) {
+                // Firebaseトークンを設定
+                this.setFirebaseToken(authResult.token);
+                
+                // GASに新規ユーザー情報を送信
+                const result = await this.post(CONFIG.ENDPOINTS.ADMIN_LOGIN, {
+                    action: 'adminRegister',
+                    firebaseToken: authResult.token,
+                    uid: authResult.user.uid,
+                    email: authResult.user.email
+                });
+                
+                if (result.success) {
+                    this.adminToken = result.token;
+                    localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_TOKEN, result.token);
+                }
+                
+                return result;
+            } else {
+                return authResult;
+            }
+        } catch (error) {
+            return {
+                success: false,
+                error: { message: error.message }
+            };
+        }
     }
 
     /**
      * 管理者ログアウト
      */
-    adminLogout() {
+    async adminLogout() {
         this.adminToken = null;
+        this.firebaseToken = null;
         localStorage.removeItem(CONFIG.STORAGE_KEYS.ADMIN_TOKEN);
+        
+        // Firebase ログアウト
+        if (window.firebaseAuthManager) {
+            await window.firebaseAuthManager.signOut();
+        }
     }
 
     /**
      * 認証チェック
      */
     isAuthenticated() {
-        return !!this.adminToken;
+        return !!this.adminToken && window.firebaseAuthManager?.isAuthenticated();
     }
 
     /**
