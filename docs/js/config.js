@@ -68,17 +68,17 @@ if (CONFIG.API_BASE_URL.includes('AKfycbxRezzN')) {
     alert('⚠️ 想定外のAPIのURLです: ' + CONFIG.API_BASE_URL);
 }
 
-// APIアクセス監視
-const originalFetch = window.fetch;
-window.fetch = function(...args) {
-    const url = args[0];
-    if (typeof url === 'string' && url.includes('script.google.com')) {
-        console.log('🌐 API Call:', url);
-        if (url.includes('AKfycbxRezzN')) {
-            console.error('❌ 古いURL使用検出!', url);
-        } else if (url.includes('AKfycbz2twb')) {
-            console.log('✅ 新しいURL使用確認!', url);
-        }
-    }
-    return originalFetch.apply(this, args);
-};
+// APIアクセス監視（無効化 - fetch()干渉回避）
+// const originalFetch = window.fetch;
+// window.fetch = function(...args) {
+//     const url = args[0];
+//     if (typeof url === 'string' && url.includes('script.google.com')) {
+//         console.log('🌐 API Call:', url);
+//         if (url.includes('AKfycbxRezzN')) {
+//             console.error('❌ 古いURL使用検出!', url);
+//         } else if (url.includes('AKfycbz2twb')) {
+//             console.log('✅ 新しいURL使用確認!', url);
+//         }
+//     }
+//     return originalFetch.apply(this, args);
+// };
