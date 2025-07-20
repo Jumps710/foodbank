@@ -38,6 +38,13 @@ class FirebaseAuthManager {
       this.app = firebase.initializeApp(firebaseConfig);
       this.auth = firebase.auth();
       
+      // ローカル環境での設定
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.log('ローカル環境を検出しました');
+        // ローカル環境でのFirebase設定を調整
+        this.auth.settings.appVerificationDisabledForTesting = true;
+      }
+      
       this.setupAuthStateListener();
       this.initialized = true;
       console.log('Firebase認証システムが初期化されました');
