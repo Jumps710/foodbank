@@ -160,6 +160,115 @@ class FirebaseAuthManager {
   }
 
   /**
+   * Googleアカウントでサインイン
+   */
+  async signInWithGoogle() {
+    try {
+      if (!this.initialized) {
+        await this.waitForInitialization();
+      }
+
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.addScope('email');
+      provider.addScope('profile');
+
+      const userCredential = await this.auth.signInWithPopup(provider);
+      const user = userCredential.user;
+      
+      // IDトークンを取得
+      const idToken = await user.getIdToken();
+      
+      return {
+        success: true,
+        user: user,
+        token: idToken,
+        isNewUser: userCredential.additionalUserInfo?.isNewUser || false
+      };
+    } catch (error) {
+      console.error('Google サインインエラー:', error);
+      
+      // ポップアップがブロックされた場合のフォールバック
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+        return this.signInWithGoogleRedirect();
+      }
+      
+      return {
+        success: false,
+        error: {
+          code: error.code,
+          message: this.getErrorMessage(error.code)
+        }
+      };
+    }
+  }
+
+  /**
+   * Googleアカウントでサインイン（リダイレクト方式）
+   */
+  async signInWithGoogleRedirect() {
+    try {
+      if (!this.initialized) {
+        await this.waitForInitialization();
+      }
+
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.addScope('email');
+      provider.addScope('profile');
+
+      await this.auth.signInWithRedirect(provider);
+      
+      // リダイレクトするため、結果は次のページ読み込み時に取得
+      return {
+        success: true,
+        redirect: true,
+        message: 'Googleサインインページにリダイレクトします...'
+      };
+    } catch (error) {
+      console.error('Google リダイレクト サインインエラー:', error);
+      return {
+        success: false,
+        error: {
+          code: error.code,
+          message: this.getErrorMessage(error.code)
+        }
+      };
+    }
+  }
+
+  /**
+   * リダイレクト結果を処理
+   */
+  async getRedirectResult() {
+    try {
+      if (!this.initialized) {
+        await this.waitForInitialization();
+      }
+
+      const result = await this.auth.getRedirectResult();
+      if (result.user) {
+        const idToken = await result.user.getIdToken();
+        return {
+          success: true,
+          user: result.user,
+          token: idToken,
+          isNewUser: result.additionalUserInfo?.isNewUser || false
+        };
+      }
+      
+      return { success: false, noResult: true };
+    } catch (error) {
+      console.error('リダイレクト結果取得エラー:', error);
+      return {
+        success: false,
+        error: {
+          code: error.code,
+          message: this.getErrorMessage(error.code)
+        }
+      };
+    }
+  }
+
+  /**
    * ログアウト
    */
   async signOut() {
@@ -246,7 +355,11 @@ class FirebaseAuthManager {
       'auth/network-request-failed': 'ネットワークエラーが発生しました',
       'auth/email-already-in-use': 'このメールアドレスは既に使用されています',
       'auth/weak-password': 'パスワードが弱すぎます。6文字以上にしてください',
-      'auth/operation-not-allowed': 'この操作は許可されていません'
+      'auth/operation-not-allowed': 'この操作は許可されていません',
+      'auth/popup-blocked': 'ポップアップがブロックされました。ポップアップを許可してください',
+      'auth/popup-closed-by-user': 'サインインがキャンセルされました',
+      'auth/cancelled-popup-request': 'サインインリクエストがキャンセルされました',
+      'auth/account-exists-with-different-credential': '別の方法で登録されたアカウントです'
     };
     
     return errorMessages[errorCode] || 'エラーが発生しました';

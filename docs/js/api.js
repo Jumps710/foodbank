@@ -124,27 +124,55 @@ class ApiClient {
             );
             
             if (authResult.success) {
+                console.log('Firebase ログイン成功:', authResult.user.email);
+                
                 // Firebaseトークンを設定
                 this.setFirebaseToken(authResult.token);
                 
-                // GASに認証情報を送信してセッション確立
-                const result = await this.post(CONFIG.ENDPOINTS.ADMIN_LOGIN, {
-                    action: 'adminLogin',
-                    firebaseToken: authResult.token,
-                    uid: authResult.user.uid,
-                    email: authResult.user.email
-                });
-                
-                if (result.success) {
-                    this.adminToken = result.token;
-                    localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_TOKEN, result.token);
+                try {
+                    // GASに認証情報を送信してセッション確立
+                    const result = await this.post(CONFIG.ENDPOINTS.ADMIN_LOGIN, {
+                        action: 'adminLogin',
+                        firebaseToken: authResult.token,
+                        uid: authResult.user.uid,
+                        email: authResult.user.email
+                    });
+                    
+                    if (result.success) {
+                        this.adminToken = result.token;
+                        localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_TOKEN, result.token);
+                        console.log('GAS セッション確立成功');
+                    } else {
+                        console.warn('GAS セッション確立失敗:', result.error);
+                    }
+                    
+                    // Firebase認証が成功していれば、GAS通信エラーがあっても成功とみなす
+                    return {
+                        success: true,
+                        user: authResult.user,
+                        token: authResult.token,
+                        gasSessionEstablished: result.success,
+                        message: result.success ? 'ログインが完了しました' : 'ログインは成功しましたが、セッション確立でエラーが発生しました'
+                    };
+                    
+                } catch (gasError) {
+                    console.warn('GAS API通信エラー:', gasError);
+                    
+                    // Firebase認証は成功しているので、部分的成功として扱う
+                    return {
+                        success: true,
+                        user: authResult.user,
+                        token: authResult.token,
+                        gasSessionEstablished: false,
+                        message: 'Firebaseログインは成功しました。管理機能の一部が制限される可能性があります。',
+                        warning: 'サーバー通信エラー: ' + gasError.message
+                    };
                 }
-                
-                return result;
             } else {
                 return authResult;
             }
         } catch (error) {
+            console.error('ログインエラー:', error);
             return {
                 success: false,
                 error: { message: error.message }
@@ -164,27 +192,55 @@ class ApiClient {
             );
             
             if (authResult.success) {
+                console.log('Firebase アカウント作成成功:', authResult.user.email);
+                
                 // Firebaseトークンを設定
                 this.setFirebaseToken(authResult.token);
                 
-                // GASに新規ユーザー情報を送信
-                const result = await this.post(CONFIG.ENDPOINTS.ADMIN_LOGIN, {
-                    action: 'adminRegister',
-                    firebaseToken: authResult.token,
-                    uid: authResult.user.uid,
-                    email: authResult.user.email
-                });
-                
-                if (result.success) {
-                    this.adminToken = result.token;
-                    localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_TOKEN, result.token);
+                try {
+                    // GASに新規ユーザー情報を送信
+                    const result = await this.post(CONFIG.ENDPOINTS.ADMIN_LOGIN, {
+                        action: 'adminRegister',
+                        firebaseToken: authResult.token,
+                        uid: authResult.user.uid,
+                        email: authResult.user.email
+                    });
+                    
+                    if (result.success) {
+                        this.adminToken = result.token;
+                        localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_TOKEN, result.token);
+                        console.log('GAS セッション確立成功');
+                    } else {
+                        console.warn('GAS セッション確立失敗:', result.error);
+                    }
+                    
+                    // Firebase認証が成功していれば、GAS通信エラーがあっても成功とみなす
+                    return {
+                        success: true,
+                        user: authResult.user,
+                        token: authResult.token,
+                        gasSessionEstablished: result.success,
+                        message: result.success ? 'アカウント作成とセッション確立が完了しました' : 'アカウント作成は成功しましたが、セッション確立でエラーが発生しました'
+                    };
+                    
+                } catch (gasError) {
+                    console.warn('GAS API通信エラー:', gasError);
+                    
+                    // Firebase認証は成功しているので、部分的成功として扱う
+                    return {
+                        success: true,
+                        user: authResult.user,
+                        token: authResult.token,
+                        gasSessionEstablished: false,
+                        message: 'Firebaseアカウント作成は成功しました。管理機能の一部が制限される可能性があります。',
+                        warning: 'サーバー通信エラー: ' + gasError.message
+                    };
                 }
-                
-                return result;
             } else {
                 return authResult;
             }
         } catch (error) {
+            console.error('アカウント作成エラー:', error);
             return {
                 success: false,
                 error: { message: error.message }

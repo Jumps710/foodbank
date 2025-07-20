@@ -143,14 +143,47 @@
         document.addEventListener('DOMContentLoaded', function() {
             modalInstance = new bootstrap.Modal(document.getElementById('actionModal'));
             
-            // 認証チェック
-            if (!apiClient.isAuthenticated()) {
+            // Firebase認証状態をチェック
+            if (window.firebaseAuthManager) {
+                window.firebaseAuthManager.onAuthStateChanged = function(user) {
+                    if (user) {
+                        // Firebase認証済み - ダッシュボードを表示
+                        console.log('Firebase認証済みユーザー:', user.email || user.displayName);
+                        loadPage('dashboard');
+                        setupNavigation();
+                    } else {
+                        // 未認証 - ログインフォームを表示
+                        showLoginForm();
+                    }
+                };
+                
+                // Googleリダイレクト結果をチェック
+                setTimeout(async () => {
+                    try {
+                        const redirectResult = await window.firebaseAuthManager.getRedirectResult();
+                        if (redirectResult.success && redirectResult.user) {
+                            console.log('Google リダイレクト サインイン成功:', redirectResult.user.email);
+                            if (redirectResult.isNewUser) {
+                                alert('Googleアカウントで新規登録しました！');
+                            } else {
+                                alert('Googleアカウントでログインしました！');
+                            }
+                        }
+                    } catch (error) {
+                        console.warn('リダイレクト結果確認エラー:', error);
+                    }
+                    
+                    // 認証状態をチェック
+                    if (window.firebaseAuthManager.getCurrentUser()) {
+                        loadPage('dashboard');
+                        setupNavigation();
+                    } else {
+                        showLoginForm();
+                    }
+                }, 1000);
+            } else {
                 showLoginForm();
-                return;
             }
-            
-            loadPage('dashboard');
-            setupNavigation();
         });
 
         // ナビゲーション設定
@@ -535,6 +568,16 @@
                                         <button type="submit" class="btn btn-primary" id="authButton">ログイン</button>
                                     </div>
                                     <div class="mt-3">
+                                        <div class="text-center">
+                                            <span class="text-muted">または</span>
+                                        </div>
+                                        <div class="d-grid mt-2">
+                                            <button type="button" class="btn btn-outline-danger" onclick="signInWithGoogle()">
+                                                <i class="bi bi-google me-2"></i>Googleでサインイン
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
                                         <small class="text-muted" id="authHelp">
                                             Firebase Authenticationを使用します。<br>
                                             既存の管理者アカウントでログインしてください。
@@ -570,15 +613,32 @@
                         return;
                     }
                     
-                    const result = isRegister 
-                        ? await apiClient.adminRegister(credentials)
-                        : await apiClient.adminLogin(credentials);
+                    if (isRegister) {
+                        // アカウント作成
+                        const authResult = await window.firebaseAuthManager.createUserWithEmailAndPassword(
+                            credentials.email, 
+                            credentials.password
+                        );
                         
-                    if (result.success) {
-                        alert(isRegister ? 'アカウントが作成されました！' : 'ログインしました！');
-                        location.reload();
+                        if (authResult.success) {
+                            alert('アカウントが作成されました！ログインします...');
+                            location.reload();
+                        } else {
+                            alert('アカウント作成に失敗しました: ' + authResult.error.message);
+                        }
                     } else {
-                        alert((isRegister ? 'アカウント作成' : 'ログイン') + 'に失敗しました: ' + (result.error?.message || '認証エラー'));
+                        // ログイン
+                        const authResult = await window.firebaseAuthManager.signInWithEmailAndPassword(
+                            credentials.email, 
+                            credentials.password
+                        );
+                        
+                        if (authResult.success) {
+                            alert('ログインしました！');
+                            location.reload();
+                        } else {
+                            alert('ログインに失敗しました: ' + authResult.error.message);
+                        }
                     }
                 } catch (error) {
                     console.error('認証エラー:', error);
@@ -641,6 +701,39 @@
             if (confirm('ログアウトしますか？')) {
                 await apiClient.adminLogout();
                 showLoginForm();
+            }
+        }
+
+        // Googleサインイン
+        async function signInWithGoogle() {
+            try {
+                if (!window.firebaseAuthManager) {
+                    alert('Firebase認証システムが読み込まれていません。ページを再読み込みしてください。');
+                    return;
+                }
+
+                console.log('Google サインインを開始...');
+                const result = await window.firebaseAuthManager.signInWithGoogle();
+                
+                if (result.success) {
+                    if (result.redirect) {
+                        // リダイレクト方式の場合
+                        console.log(result.message);
+                    } else {
+                        // ポップアップ方式の場合
+                        if (result.isNewUser) {
+                            alert('Googleアカウントで新規登録しました！');
+                        } else {
+                            alert('Googleアカウントでログインしました！');
+                        }
+                        location.reload();
+                    }
+                } else {
+                    alert('Googleサインインに失敗しました: ' + result.error.message);
+                }
+            } catch (error) {
+                console.error('Google サインインエラー:', error);
+                alert('エラー: ' + error.message);
             }
         }
 
