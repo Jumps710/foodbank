@@ -2,8 +2,8 @@
  * フロントエンド設定
  */
 const CONFIG = {
-    // GAS API のベースURL（正しいスプレッドシート用GASプロジェクト）
-    API_BASE_URL: 'https://script.google.com/macros/s/AKfycbw-CrnqjLY2l6Ot7NlBCFdNse0ai7rNC0b4R50eCePrs69Zcc7fl1ZiDkeX99GDbop7vg/exec',
+    // GAS API のベースURL（本番デプロイ済み - パブリックアクセス設定済み）
+    API_BASE_URL: 'https://script.google.com/macros/s/AKfycbz2twbdzRlljcTMzF26UKI-YDSKA9ijERPuTTICjXydR0kA1jVZiBvtS23CneUKa-j3sw/exec',
     
     // APIエンドポイント
     ENDPOINTS: {
@@ -55,4 +55,4 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
 
 // デバッグ情報をコンソール出力
 console.log('🔧 Config.js ロード完了 - API URL:', CONFIG.API_BASE_URL);
-console.log('📅 Config バージョン: 2025.07.20-v5 (正しいGASプロジェクト接続)');
+console.log('📅 Config バージョン: 2025.07.20-v6 (本番デプロイ完了 - パブリックアクセス)');
