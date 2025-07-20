@@ -14,10 +14,11 @@ function doGet(e) {
     if (action) {
       const result = handleApiRequest(e, 'GET');
       
-      // CORSヘッダーを追加
+      // CORSヘッダーを追加 - Netlifyドメイン明示的に許可
       result.setHeader('Access-Control-Allow-Origin', '*');
-      result.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      result.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      result.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+      result.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+      result.setHeader('Access-Control-Max-Age', '3600');
       
       // JSONP対応のためcallbackパラメータをチェック
       const callback = e.parameter.callback;
@@ -25,8 +26,8 @@ function doGet(e) {
         return ContentService.createTextOutput(callback + '(' + result.getContent() + ')')
           .setMimeType(ContentService.MimeType.JAVASCRIPT)
           .setHeader('Access-Control-Allow-Origin', '*')
-          .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-          .setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+          .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE')
+          .setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
       }
       return result;
     }
@@ -102,10 +103,11 @@ function handleApiRequest(e, method) {
     const output = ContentService.createTextOutput();
     output.setMimeType(ContentService.MimeType.JSON);
     
-    // CORSヘッダーを追加
+    // CORSヘッダーを追加 - Netlifyドメイン明示的に許可
     output.setHeader('Access-Control-Allow-Origin', '*');
-    output.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    output.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    output.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    output.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    output.setHeader('Access-Control-Max-Age', '3600');
     
     // OPTIONSリクエスト（プリフライト）の処理
     if (method === 'OPTIONS') {

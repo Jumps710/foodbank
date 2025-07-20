@@ -13,6 +13,8 @@ class ApiClient {
      */
     async request(endpoint, method = 'GET', data = null, useFormData = false) {
         try {
+            console.log('🌐 API Request:', method, endpoint, data);
+            
             // Firebase認証状態を自動取得
             await this.updateFirebaseToken();
             
@@ -111,10 +113,7 @@ class ApiClient {
      * 統計データ取得
      */
     async getStatistics(filters = {}) {
-        return this.post(CONFIG.ENDPOINTS.GET_STATISTICS, {
-            action: 'getStatistics',
-            filters: filters
-        });
+        return this.get(CONFIG.ENDPOINTS.GET_STATISTICS);
     }
 
     // === 管理API ===
@@ -303,10 +302,7 @@ class ApiClient {
      * パントリー一覧取得
      */
     async adminGetPantries(filters = {}) {
-        return this.post(CONFIG.ENDPOINTS.ADMIN_GET_PANTRIES, {
-            action: 'adminGetPantries',
-            filters: filters
-        });
+        return this.get(CONFIG.ENDPOINTS.ADMIN_GET_PANTRIES);
     }
 
     /**
@@ -343,10 +339,7 @@ class ApiClient {
      * 予約一覧取得
      */
     async adminGetReservations(filters = {}) {
-        return this.post(CONFIG.ENDPOINTS.ADMIN_GET_RESERVATIONS, {
-            action: 'adminGetReservations',
-            filters: filters
-        });
+        return this.get(CONFIG.ENDPOINTS.ADMIN_GET_RESERVATIONS);
     }
 
     /**
@@ -363,10 +356,7 @@ class ApiClient {
      * ユーザー一覧取得
      */
     async adminGetUsers(filters = {}) {
-        return this.post(CONFIG.ENDPOINTS.ADMIN_GET_USERS, {
-            action: 'adminGetUsers',
-            filters: filters
-        });
+        return this.get(CONFIG.ENDPOINTS.ADMIN_GET_USERS);
     }
 
     /**
@@ -383,10 +373,7 @@ class ApiClient {
      * ログ一覧取得
      */
     async adminGetLogs(filters = {}) {
-        return this.post(CONFIG.ENDPOINTS.ADMIN_GET_LOGS, {
-            action: 'adminGetLogs',
-            filters: filters
-        });
+        return this.get(CONFIG.ENDPOINTS.ADMIN_GET_LOGS);
     }
 
     /**
