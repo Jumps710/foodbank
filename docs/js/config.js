@@ -2,8 +2,8 @@
  * フロントエンド設定
  */
 const CONFIG = {
-    // GAS API のベースURL（新しいデプロイメント）
-    API_BASE_URL: 'https://script.google.com/macros/s/AKfycbxRezzNB1KT5WAaIVWRtTX7Sr07BiihSmOGKHPmNIcmD4rwffRiCg5StemDplHEquvf/exec',
+    // GAS API のベースURL（新しいデプロイメント - CORS修正版）
+    API_BASE_URL: 'https://script.google.com/macros/s/AKfycbxbSK8FlUF2Q6XZ0qssleCVVPwHydDhnA15oNMWy0IPz9-Jkfh4VDdush7T0EqvZNpKpw/exec',
     
     // APIエンドポイント
     ENDPOINTS: {
