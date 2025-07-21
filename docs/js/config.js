@@ -3,7 +3,7 @@
  */
 const CONFIG = {
     // GAS API のベースURL（本番デプロイ済み - パブリックアクセス設定済み）
-    API_BASE_URL: 'https://script.google.com/macros/s/AKfycbw5M8rm7P4O7j_ZnMJkEgTaG8PXeFortMIvbYo7Tao0bUZ8j1ZYMgv7S_KyQG6F3jVpag/exec',
+    API_BASE_URL: 'https://script.google.com/macros/s/AKfycbxqAgy3DwgSLgKZ_lbWMJrXT5_us10cSqA_fqT2R3QyDg0Qe88G6icF13ZTvHY0zLpmjQ/exec',
     
     // APIエンドポイント
     ENDPOINTS: {
