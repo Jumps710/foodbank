@@ -108,3 +108,29 @@ test-data/
 
 # Project instructions (contains sensitive information)
 CLAUDE.md
+claude.md
+
+# Google Apps Script files (contains implementation code)
+gas-project/
+*.clasp.json
+
+# Firebase configuration (sensitive)
+firebase-config.js
+*firebase-config*.js
+
+# Data files (may contain personal information)
+reservation.csv
+*.csv
+
+# Setup and deployment files
+*-setup.md
+*SETUP*.md
+*DEPLOY*.md
+*GUIDE*.md
+setup-*.js
+deploy*.sh
+auto-deploy.sh
+initialize-*.js
+
+# Screenshot files
+screenshot/
