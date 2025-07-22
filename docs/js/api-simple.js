@@ -114,6 +114,26 @@ const adminApi = {
   // 予約キャンセル
   async cancelReservation(reservationId) {
     return apiRequest('adminCancelReservation', 'POST', { reservationId });
+  },
+  
+  // パントリー削除
+  async deletePantry(pantryId) {
+    return apiRequest('adminDeletePantry', 'POST', { pantryId });
+  },
+  
+  // 予約詳細取得
+  async getReservationDetail(reservationId) {
+    return apiRequest('adminGetReservationDetail', 'GET', { reservationId });
+  },
+  
+  // ユーザー詳細取得
+  async getUserDetail(userId) {
+    return apiRequest('adminGetUserDetail', 'GET', { userId });
+  },
+  
+  // ログエクスポート
+  async exportLogs() {
+    return apiRequest('adminExportLogs');
   }
 };
 

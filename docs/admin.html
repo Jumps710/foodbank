@@ -136,7 +136,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/config.js?bust=1752983400000"></script>
     <script src="js/firebase-config-simple.js?bust=1752983400000"></script>
-    <script src="js/api-simple.js?v=8"></script>
+    <script src="js/api-simple.js?v=9"></script>
     <script>
         // ページ管理
         let currentPage = 'dashboard';
@@ -742,14 +742,358 @@
             }
         }
 
-        // 仮の関数（実装予定）
-        function showCreatePantryForm() { alert('実装予定: パントリー作成フォーム'); }
-        function editPantry(id) { alert('実装予定: パントリー編集 - ' + id); }
-        function deletePantry(id) { alert('実装予定: パントリー削除 - ' + id); }
-        function viewReservation(id) { alert('実装予定: 予約詳細 - ' + id); }
-        function cancelReservation(id) { alert('実装予定: 予約キャンセル - ' + id); }
-        function viewUser(id) { alert('実装予定: ユーザー詳細 - ' + id); }
-        function exportLogs() { alert('実装予定: ログエクスポート'); }
+        // パントリー作成フォーム表示
+        function showCreatePantryForm() {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const modalFooter = document.getElementById('modalFooter');
+            
+            modalTitle.textContent = 'パントリー作成';
+            modalBody.innerHTML = `
+                <form id="pantryForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">開催日時 <span class="text-danger">*</span></label>
+                                <input type="datetime-local" class="form-control" name="event_date" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">開催場所 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="location" required placeholder="例: 市川市役所本庁舎">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">予約開始日時 <span class="text-danger">*</span></label>
+                                <input type="datetime-local" class="form-control" name="reservation_start" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">予約終了日時 <span class="text-danger">*</span></label>
+                                <input type="datetime-local" class="form-control" name="reservation_end" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">予約上限数 <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="capacity_total" required min="1" max="200" value="50">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">ステータス</label>
+                                <select class="form-select" name="status">
+                                    <option value="upcoming">予定</option>
+                                    <option value="active">受付中</option>
+                                    <option value="closed">終了</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">タイトル</label>
+                        <input type="text" class="form-control" name="title" placeholder="例: 1月度 フードパントリー">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">ヘッダー案内文</label>
+                        <textarea class="form-control" name="header_message" rows="3" placeholder="予約フォーム上部に表示される案内文"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">自動応答メール案内文</label>
+                        <textarea class="form-control" name="email_message" rows="3" placeholder="予約完了時に送信されるメール本文"></textarea>
+                    </div>
+                </form>
+            `;
+            
+            modalFooter.innerHTML = `
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-primary" onclick="savePantry()">作成</button>
+            `;
+            
+            modalInstance.show();
+        }
+
+        // パントリー保存
+        async function savePantry() {
+            try {
+                const form = document.getElementById('pantryForm');
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                
+                // バリデーション
+                if (!data.event_date || !data.location || !data.reservation_start || !data.reservation_end || !data.capacity_total) {
+                    alert('必須項目を入力してください');
+                    return;
+                }
+                
+                const result = await adminApi.createPantry(data);
+                
+                if (result.success) {
+                    alert('パントリーを作成しました');
+                    modalInstance.hide();
+                    loadPage('pantries'); // 一覧を再読み込み
+                } else {
+                    alert('作成に失敗しました: ' + (result.error || '不明なエラー'));
+                }
+            } catch (error) {
+                alert('エラー: ' + handleApiError(error));
+            }
+        }
+
+        // パントリー編集
+        async function editPantry(pantryId) {
+            try {
+                // まず現在のデータを取得
+                const pantries = await adminApi.getPantries();
+                const pantry = pantries.success ? pantries.data.find(p => p.pantry_id === pantryId) : null;
+                
+                if (!pantry) {
+                    alert('パントリー情報が見つかりません');
+                    return;
+                }
+                
+                const modalTitle = document.getElementById('modalTitle');
+                const modalBody = document.getElementById('modalBody');
+                const modalFooter = document.getElementById('modalFooter');
+                
+                modalTitle.textContent = 'パントリー編集';
+                modalBody.innerHTML = `
+                    <form id="pantryEditForm">
+                        <input type="hidden" name="pantry_id" value="${pantryId}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">開催日時 <span class="text-danger">*</span></label>
+                                    <input type="datetime-local" class="form-control" name="event_date" required value="${pantry.event_date || ''}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">開催場所 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="location" required value="${pantry.location || ''}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">予約上限数 <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" name="capacity_total" required min="1" max="200" value="${pantry.capacity_total || 50}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">ステータス</label>
+                                    <select class="form-select" name="status">
+                                        <option value="upcoming" ${pantry.status === 'upcoming' ? 'selected' : ''}>予定</option>
+                                        <option value="active" ${pantry.status === 'active' ? 'selected' : ''}>受付中</option>
+                                        <option value="closed" ${pantry.status === 'closed' ? 'selected' : ''}>終了</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                `;
+                
+                modalFooter.innerHTML = `
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary" onclick="updatePantry()">更新</button>
+                `;
+                
+                modalInstance.show();
+            } catch (error) {
+                alert('エラー: ' + handleApiError(error));
+            }
+        }
+
+        // パントリー更新
+        async function updatePantry() {
+            try {
+                const form = document.getElementById('pantryEditForm');
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                
+                const result = await adminApi.updatePantry(data);
+                
+                if (result.success) {
+                    alert('パントリーを更新しました');
+                    modalInstance.hide();
+                    loadPage('pantries');
+                } else {
+                    alert('更新に失敗しました: ' + (result.error || '不明なエラー'));
+                }
+            } catch (error) {
+                alert('エラー: ' + handleApiError(error));
+            }
+        }
+
+        // パントリー削除
+        async function deletePantry(pantryId) {
+            if (!confirm('このパントリーを削除しますか？\n※関連する予約データも削除されます。')) {
+                return;
+            }
+            
+            try {
+                const result = await adminApi.deletePantry(pantryId);
+                
+                if (result.success) {
+                    alert('パントリーを削除しました');
+                    loadPage('pantries');
+                } else {
+                    alert('削除に失敗しました: ' + (result.error || '不明なエラー'));
+                }
+            } catch (error) {
+                alert('エラー: ' + handleApiError(error));
+            }
+        }
+
+        // 予約詳細表示
+        async function viewReservation(reservationId) {
+            try {
+                const result = await adminApi.getReservationDetail(reservationId);
+                
+                if (result.success) {
+                    const reservation = result.data;
+                    const modalTitle = document.getElementById('modalTitle');
+                    const modalBody = document.getElementById('modalBody');
+                    const modalFooter = document.getElementById('modalFooter');
+                    
+                    modalTitle.textContent = '予約詳細';
+                    modalBody.innerHTML = `
+                        <table class="table">
+                            <tr><th>予約ID</th><td>${reservation.reservation_id || ''}</td></tr>
+                            <tr><th>氏名（カナ）</th><td>${reservation.name_kana || ''}</td></tr>
+                            <tr><th>パントリー</th><td>${reservation.pantry_id || ''}</td></tr>
+                            <tr><th>予約日時</th><td>${formatDateTime(reservation.created_at)}</td></tr>
+                            <tr><th>ステータス</th><td><span class="badge bg-${getStatusColor(reservation.status)}">${getStatusText(reservation.status)}</span></td></tr>
+                            <tr><th>電話番号</th><td>${reservation.phone || '-'}</td></tr>
+                            <tr><th>メールアドレス</th><td>${reservation.email || '-'}</td></tr>
+                            <tr><th>世帯人数</th><td>${reservation.household_total || '-'}人</td></tr>
+                        </table>
+                    `;
+                    
+                    modalFooter.innerHTML = `
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                        <button type="button" class="btn btn-danger" onclick="cancelReservation('${reservationId}')">予約キャンセル</button>
+                    `;
+                    
+                    modalInstance.show();
+                } else {
+                    alert('予約情報の取得に失敗しました: ' + (result.error || '不明なエラー'));
+                }
+            } catch (error) {
+                alert('エラー: ' + handleApiError(error));
+            }
+        }
+
+        // 予約キャンセル
+        async function cancelReservation(reservationId) {
+            if (!confirm('この予約をキャンセルしますか？')) {
+                return;
+            }
+            
+            try {
+                const result = await adminApi.cancelReservation(reservationId);
+                
+                if (result.success) {
+                    alert('予約をキャンセルしました');
+                    modalInstance.hide();
+                    loadPage('reservations');
+                } else {
+                    alert('キャンセルに失敗しました: ' + (result.error || '不明なエラー'));
+                }
+            } catch (error) {
+                alert('エラー: ' + handleApiError(error));
+            }
+        }
+
+        // ユーザー詳細表示
+        async function viewUser(userId) {
+            try {
+                const result = await adminApi.getUserDetail(userId);
+                
+                if (result.success) {
+                    const user = result.data;
+                    const modalTitle = document.getElementById('modalTitle');
+                    const modalBody = document.getElementById('modalBody');
+                    const modalFooter = document.getElementById('modalFooter');
+                    
+                    modalTitle.textContent = 'ユーザー詳細';
+                    modalBody.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table">
+                                    <tr><th>氏名（カナ）</th><td>${user.name_kana || ''}</td></tr>
+                                    <tr><th>地域</th><td>${user.area || '-'}</td></tr>
+                                    <tr><th>世帯人数</th><td>${(user.household_adults || 0) + (user.household_children || 0)}人</td></tr>
+                                    <tr><th>利用回数</th><td>${user.total_visits || 0}回</td></tr>
+                                    <tr><th>最終利用日</th><td>${formatDate(user.last_visit_date) || '-'}</td></tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>利用履歴</h6>
+                                <div style="max-height: 200px; overflow-y: auto;">
+                                    ${user.visit_history && user.visit_history.length > 0 ? 
+                                        user.visit_history.map(visit => `
+                                            <div class="border-bottom py-1">
+                                                <small>${formatDate(visit.date)} - ${visit.pantry_id}</small>
+                                            </div>
+                                        `).join('') :
+                                        '<small class="text-muted">利用履歴がありません</small>'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    modalFooter.innerHTML = `
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                    `;
+                    
+                    modalInstance.show();
+                } else {
+                    alert('ユーザー情報の取得に失敗しました: ' + (result.error || '不明なエラー'));
+                }
+            } catch (error) {
+                alert('エラー: ' + handleApiError(error));
+            }
+        }
+
+        // ログエクスポート
+        async function exportLogs() {
+            try {
+                const result = await adminApi.exportLogs();
+                
+                if (result.success && result.data) {
+                    // CSV データをBlob として作成
+                    const blob = new Blob([result.data], { type: 'text/csv;charset=utf-8;' });
+                    
+                    // ダウンロードリンクを作成
+                    const link = document.createElement('a');
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', `foodbank-logs-${new Date().toISOString().split('T')[0]}.csv`);
+                    link.style.visibility = 'hidden';
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    alert('ログファイルをダウンロードしました');
+                } else {
+                    alert('ログのエクスポートに失敗しました: ' + (result.error || '不明なエラー'));
+                }
+            } catch (error) {
+                alert('エラー: ' + handleApiError(error));
+            }
+        }
     </script>
 </body>
 </html>
