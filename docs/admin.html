@@ -237,8 +237,8 @@
 
         // ダッシュボード読み込み
         async function loadDashboard() {
-            const stats = await apiClient.getStatistics();
-            const pantries = await apiClient.adminGetPantries();
+            const stats = await publicApi.getStatistics();
+            const pantries = await adminApi.getPantries();
             
             const content = `
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
