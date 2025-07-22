@@ -166,5 +166,42 @@ window.publicApi = publicApi;
 window.adminApi = adminApi;
 window.apiRequest = apiRequest;
 
+/**
+ * エラーハンドリング用のヘルパー関数
+ */
+function handleApiError(error, defaultMessage = 'エラーが発生しました') {
+  console.error('API エラー:', error);
+  
+  if (error.code === 'UNAUTHORIZED') {
+    // 認証エラーの場合はログイン画面にリダイレクト
+    if (window.location.pathname.includes('admin')) {
+      window.location.href = 'login.html';
+    }
+    return '認証が必要です。ログインしてください。';
+  }
+  
+  return error.message || defaultMessage;
+}
+
+/**
+ * 日付フォーマット用のヘルパー関数
+ */
+function formatDate(date, format = CONFIG.UI.DATE_FORMAT) {
+  if (!date) return '';
+  const d = new Date(date);
+  return d.toLocaleDateString('ja-JP');
+}
+
+function formatDateTime(date) {
+  if (!date) return '';
+  const d = new Date(date);
+  return d.toLocaleString('ja-JP');
+}
+
+// グローバルに公開
+window.handleApiError = handleApiError;
+window.formatDate = formatDate;
+window.formatDateTime = formatDateTime;
+
 console.log('📡 Simple API Client loaded');
 console.log('💡 コンソールで testApi() を実行してテストできます');

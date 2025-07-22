@@ -8,7 +8,7 @@ const https = require('https');
 const { URL, URLSearchParams } = require('url');
 
 // 設定
-const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbziFtuVZ605iEZFZM2ynMdYwD4yTMc7ZED2TFWVreT5_iv0KeaJfNbz5dl8sIRnYaXXFw/exec';
+const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbxNS8TKGfDlyKGPZvcVx-Ad7QWmc2RCPd-drkXNsXmcaf8v8MEoclrnd98VDJIrSdvCNQ/exec';
 
 /**
  * APIリクエスト関数（kodomonwパターン）
