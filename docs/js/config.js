@@ -55,8 +55,8 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
 
 // デバッグ情報をコンソール出力  
 console.log('🔧 Config.js ロード完了 - API URL:', CONFIG.API_BASE_URL);
-console.log('📅 Config バージョン: 2025.07.22-v5 (新規デプロイメント)');
-console.log('✅ 最新API URL: AKfycbziFtuVZ605iEZFZM2ynMdYwD4yTMc7ZED2TFWVreT5_iv0KeaJfNbz5dl8sIRnYaXXFw');
+console.log('📅 Config バージョン: 2025.07.22-v6 (CSP修正+ログ機能)');
+console.log('✅ 最新API URL: AKfycbxNS8TKGfDlyKGPZvcVx-Ad7QWmc2RCPd-drkXNsXmcaf8v8MEoclrnd98VDJIrSdvCNQ');
 
 // APIアクセス監視（無効化 - fetch()干渉回避）
 // const originalFetch = window.fetch;
