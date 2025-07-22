@@ -136,7 +136,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/config.js?bust=1752983400000"></script>
     <script src="js/firebase-config-simple.js?bust=1752983400000"></script>
-    <script src="js/api-simple.js?v=7"></script>
+    <script src="js/api-simple.js?v=8"></script>
     <script>
         // ページ管理
         let currentPage = 'dashboard';
@@ -324,7 +324,7 @@
 
         // パントリー管理読み込み
         async function loadPantries() {
-            const pantries = await apiClient.adminGetPantries();
+            const pantries = await adminApi.getPantries();
             
             const content = `
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -385,7 +385,7 @@
 
         // 予約状況読み込み
         async function loadReservations() {
-            const reservations = await apiClient.adminGetReservations();
+            const reservations = await adminApi.getReservations();
             
             const content = `
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -441,7 +441,7 @@
 
         // ユーザー管理読み込み
         async function loadUsers() {
-            const users = await apiClient.adminGetUsers();
+            const users = await adminApi.getUsers();
             
             const content = `
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -494,7 +494,7 @@
 
         // ログ管理読み込み
         async function loadLogs() {
-            const logs = await apiClient.adminGetLogs();
+            const logs = await adminApi.getLogs();
             
             const content = `
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -702,7 +702,9 @@
         // ログアウト
         async function logout() {
             if (confirm('ログアウトしますか？')) {
-                await apiClient.adminLogout();
+                if (window.firebaseAuthManager) {
+                    await window.firebaseAuthManager.signOut();
+                }
                 showLoginForm();
             }
         }
