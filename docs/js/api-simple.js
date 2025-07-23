@@ -66,6 +66,11 @@ const publicApi = {
     return apiRequest('getStatistics');
   },
   
+  // ダッシュボード統計データ取得
+  async getDashboardStats(filter = 'all') {
+    return apiRequest(`getDashboardStats?filter=${encodeURIComponent(filter)}`);
+  },
+  
   // 現在のパントリー取得
   async getCurrentPantry() {
     return apiRequest('getCurrentPantry');
@@ -97,8 +102,8 @@ const adminApi = {
   },
   
   // ログ一覧取得
-  async getLogs() {
-    return apiRequest('adminGetLogs');
+  async getLogs(levelFilter = 'all') {
+    return apiRequest(`adminGetLogs?levelFilter=${encodeURIComponent(levelFilter)}`);
   },
   
   // パントリー作成
@@ -134,6 +139,46 @@ const adminApi = {
   // ログエクスポート
   async exportLogs() {
     return apiRequest('adminExportLogs');
+  },
+  
+  // パントリーごとの予約一覧取得
+  async getReservationsByPantry(pantryId) {
+    return apiRequest(`adminGetReservationsByPantry?pantryId=${encodeURIComponent(pantryId)}`);
+  },
+  
+  // 利用者ベストテン取得
+  async getTopUsers(filter = 'all') {
+    return apiRequest(`adminGetTopUsers?filter=${encodeURIComponent(filter)}`);
+  },
+  
+  // 利用履歴取得
+  async getUsageHistory(filter = 'all', userFilter = '') {
+    return apiRequest(`adminGetUsageHistory?filter=${encodeURIComponent(filter)}&userFilter=${encodeURIComponent(userFilter)}`);
+  },
+  
+  // 利用履歴エクスポート
+  async exportUsageHistory(filter = 'all', userFilter = '') {
+    return apiRequest(`adminExportUsageHistory?filter=${encodeURIComponent(filter)}&userFilter=${encodeURIComponent(userFilter)}`);
+  },
+  
+  // 管理者一覧取得
+  async getAdmins() {
+    return apiRequest('adminGetAdmins');
+  },
+  
+  // 管理者追加
+  async addAdmin(data) {
+    return apiRequest('adminAddAdmin', 'POST', data);
+  },
+  
+  // 管理者詳細取得
+  async getAdminDetail(uid) {
+    return apiRequest(`adminGetAdminDetail?uid=${encodeURIComponent(uid)}`);
+  },
+  
+  // 管理者ステータス切り替え
+  async toggleAdminStatus(uid, status) {
+    return apiRequest('adminToggleAdminStatus', 'POST', { uid, status });
   }
 };
 

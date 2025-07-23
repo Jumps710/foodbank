@@ -279,6 +279,40 @@
                                 <label class="form-label">その他（サポートが必要なことなど）</label>
                                 <textarea class="form-control" name="support_info" rows="3"></textarea>
                             </div>
+                            
+                            <!-- 個人情報取扱い同意 -->
+                            <div class="mb-4">
+                                <div class="card border-secondary">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">個人情報の取り扱いについて</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="small mb-2">フードパントリーの運営にあたり、以下の個人情報を取得いたします：</p>
+                                        <ul class="small mb-2">
+                                            <li>氏名（カタカナ・漢字）</li>
+                                            <li>お住まいの地域</li>
+                                            <li>メールアドレス、電話番号（任意）</li>
+                                            <li>世帯構成、アレルギー情報等</li>
+                                        </ul>
+                                        <p class="small mb-2"><strong>利用目的：</strong></p>
+                                        <ul class="small mb-2">
+                                            <li>フードパントリー予約の管理</li>
+                                            <li>利用状況の統計分析（個人を特定しない形）</li>
+                                            <li>緊急時の連絡（必要な場合のみ）</li>
+                                        </ul>
+                                        <p class="small mb-2"><strong>保管期間：</strong> 予約完了後3年間</p>
+                                        <p class="small mb-2"><strong>第三者提供：</strong> 法令に基づく場合を除き、第三者への提供は行いません</p>
+                                        <p class="small mb-0"><strong>お問い合わせ：</strong> 個人情報に関するお問い合わせは管理者までご連絡ください</p>
+                                    </div>
+                                </div>
+                                <div class="form-check mt-3">
+                                    <input class="form-check-input" type="checkbox" name="privacy_consent" id="privacy_consent" required>
+                                    <label class="form-check-label" for="privacy_consent">
+                                        <strong>上記の個人情報の取り扱いについて同意します <span class="text-danger">*</span></strong>
+                                    </label>
+                                </div>
+                            </div>
+                            
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary btn-lg">
                                     <i class="bi bi-calendar-check me-2"></i>予約する
@@ -298,17 +332,54 @@
                 const formData = new FormData(e.target);
                 const data = Object.fromEntries(formData.entries());
                 
+                // 必須項目チェック
+                if (!data.name_kana || !data.area) {
+                    alert('必須項目を入力してください。');
+                    return;
+                }
+                
+                // 個人情報同意チェック
+                if (!data.privacy_consent) {
+                    alert('個人情報の取り扱いについて同意してください。');
+                    return;
+                }
+                
+                // 送信ボタンを無効化
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>送信中...';
+                
                 try {
                     const result = await apiClient.createReservation(data);
                     if (result.success) {
-                        alert('予約が完了しました！予約ID: ' + result.data.reservation_id);
-                        e.target.reset();
+                        // 成功メッセージ
+                        const successMessage = `
+                            <div class="alert alert-success">
+                                <h5><i class="bi bi-check-circle me-2"></i>予約が完了しました！</h5>
+                                <p class="mb-2"><strong>予約ID:</strong> ${result.data.reservation_id}</p>
+                                <p class="mb-0">予約IDは大切に保管してください。当日受付にてお伝えください。</p>
+                            </div>
+                        `;
+                        
+                        // フォームを成功メッセージに置き換え
+                        document.getElementById('reservationForm').innerHTML = successMessage;
+                        
+                        // ページトップにスクロール
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        
                     } else {
-                        alert('予約に失敗しました: ' + result.error.message);
+                        alert('予約に失敗しました: ' + (result.error || '不明なエラー'));
+                        // ボタンを復元
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
                     }
                 } catch (error) {
                     console.error('予約エラー:', error);
-                    alert('予約処理中にエラーが発生しました。');
+                    alert('予約処理中にエラーが発生しました。時間をおいて再度お試しください。');
+                    // ボタンを復元
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
                 }
             }
         });
