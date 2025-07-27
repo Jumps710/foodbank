@@ -23,14 +23,17 @@
                         
                         <h5>実行する内容：</h5>
                         <ul>
-                            <li>必要なシート（pantries, reservations, users, admins, log）を作成</li>
-                            <li>各シートにヘッダー行を設定</li>
-                            <li>サンプルデータの挿入（オプション）</li>
+                            <li>必要なビューシート（view_pantries, view_users, view_dashboard）を作成</li>
+                            <li>既存のreservationシートからデータを集計</li>
+                            <li>管理シート（admins, log）を作成</li>
                         </ul>
                         
                         <div class="d-grid gap-2 mt-4">
                             <button class="btn btn-primary" onclick="initializeSpreadsheet()">
-                                <i class="bi bi-play-circle me-2"></i>スプレッドシートを初期化
+                                <i class="bi bi-database me-2"></i>ハイブリッド構成で初期化
+                            </button>
+                            <button class="btn btn-warning" onclick="updateViews()">
+                                <i class="bi bi-arrow-clockwise me-2"></i>集計ビューを更新
                             </button>
                             <button class="btn btn-success" onclick="createSampleData()">
                                 <i class="bi bi-file-plus me-2"></i>サンプルデータを作成
@@ -95,6 +98,12 @@
         function createSampleData() {
             if (confirm('サンプルデータを作成しますか？')) {
                 apiCall('createSampleData');
+            }
+        }
+        
+        function updateViews() {
+            if (confirm('マスターデータから集計ビューを更新しますか？')) {
+                apiCall('updateAllViews');
             }
         }
     </script>

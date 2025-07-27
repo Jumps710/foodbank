@@ -3,7 +3,7 @@
  */
 const CONFIG = {
     // GAS API のベースURL（本番デプロイ済み - パブリックアクセス設定済み）
-    API_BASE_URL: 'https://script.google.com/macros/s/AKfycbyg7YQOlk0ZMyWFpr_ggQ1Cfgf9fQLWO7VIG_F54qGvx9mrQ7qCf3uzHGoOEjs9g6On7A/exec',
+    API_BASE_URL: 'https://script.google.com/macros/s/AKfycbyRXlAvfKta1GG8RcoZ4ZTV4rIYyj-8otJSmNXelPEowe96F8KabcNeHmohJY9ArGiZ7Q/exec',
     
     // APIエンドポイント
     ENDPOINTS: {
@@ -55,8 +55,8 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
 
 // デバッグ情報をコンソール出力  
 console.log('🔧 Config.js ロード完了 - API URL:', CONFIG.API_BASE_URL);
-console.log('📅 Config バージョン: 2025.07.23-v8 (スプレッドシート初期化機能追加)');
-console.log('✅ 最新API URL: AKfycbyg7YQOlk0ZMyWFpr_ggQ1Cfgf9fQLWO7VIG_F54qGvx9mrQ7qCf3uzHGoOEjs9g6On7A');
+console.log('📅 Config バージョン: 2025.07.23-v9 (ハイブリッドアプローチ実装)');
+console.log('✅ 最新API URL: AKfycbyRXlAvfKta1GG8RcoZ4ZTV4rIYyj-8otJSmNXelPEowe96F8KabcNeHmohJY9ArGiZ7Q');
 
 // APIアクセス監視（無効化 - fetch()干渉回避）
 // const originalFetch = window.fetch;
